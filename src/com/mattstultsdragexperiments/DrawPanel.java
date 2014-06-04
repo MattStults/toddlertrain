@@ -17,11 +17,12 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
+public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback {
 
 	private AtomicReference<DrawThread> thread = new AtomicReference<DrawThread>();
 	private final FpsMonitor fpsMonitor;
 	private final GameModel model;
+
 	public DrawPanel(Context context, GameModel model) {
 		super(context);
 		this.model = model;
@@ -29,15 +30,15 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 		fpsMonitor = new FpsMonitor();
 		setFocusable(true);
 	}
-	
+
 	public synchronized void pause() {
 		DrawThread thread = this.thread.get();
 		if (thread != null) {
-		  thread.setRunning(false);
-		  this.thread.set(null);
+			thread.setRunning(false);
+			this.thread.set(null);
 		}
 	}
-	
+
 	public synchronized void resume() {
 		DrawThread thread = this.thread.get();
 		if (thread == null) {
@@ -69,14 +70,14 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 		while (thread != null) {
 			try {
 				thread.join(); // attempt to shut down.
-				return; //we were successful!
+				return; // we were successful!
 			} catch (InterruptedException e) {
 				// We still really want to shut down.
 				// try again in the while loop.
 			}
 		}
 	}
-	
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		DrawThread thread = this.thread.get();
@@ -85,14 +86,14 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 		}
 		return true;
 	}
-	
+
 	@Override
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		//canvas.drawColor(Color.WHITE);
+		// canvas.drawColor(Color.WHITE);
 		long timeDelta = fpsMonitor.tick(System.currentTimeMillis());
 		model.draw(canvas, timeDelta);
-		
+
 		displayFps(canvas, fpsMonitor.fps());
 	}
 
@@ -102,31 +103,33 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 		fpsPaint.setTextSize(30);
 		canvas.drawText("fps: " + fps, 40, 70, fpsPaint);
 	}
+
 	private static class FpsMonitor {
 		private static final int nSamples = 100;
 		private long frames = 0;
 		private long lastUpdate;
 		private long totalTime = 0;
-		
+
 		private final ArrayList<Long> frameLengths;
-		
+
 		public FpsMonitor() {
 			frameLengths = new ArrayList<Long>(nSamples);
 			for (int i = 0; i < nSamples; i++) {
 				frameLengths.add(0l);
 			}
 		}
-		
+
 		public void initialize(long initTime) {
 			lastUpdate = initTime;
 		}
+
 		public int fps() {
 			if (frames >= nSamples) {
-				return (int)(1.0 / (totalTime / (1000.0 * nSamples)));
+				return (int) (1.0 / (totalTime / (1000.0 * nSamples)));
 			}
 			return 0;
 		}
-		
+
 		public long tick(long currentTime) {
 			long frameLength = currentTime - lastUpdate;
 			lastUpdate = currentTime;
@@ -137,12 +140,15 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 			return frameLength;
 		}
 	}
+
 	public interface GameModel {
 		public void draw(Canvas canvas, long time);
+
 		public void setOffset(int[] offset);
+
 		public void handleInput(MotionEvent event);
 	}
-	
+
 	private static class DrawThread extends Thread {
 		private static final int MAX_FPS = 60;
 		private static final int FRAME_MS = 1000 / MAX_FPS;
@@ -151,8 +157,9 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 		private final DrawPanel drawPanel;
 		private final ConcurrentLinkedQueue<MotionEvent> inputQueue;
 		private final GameModel gameModel;
-		
-		public DrawThread(SurfaceHolder surfaceHolder, DrawPanel drawPanel, GameModel gameModel) {
+
+		public DrawThread(SurfaceHolder surfaceHolder, DrawPanel drawPanel,
+				GameModel gameModel) {
 			this.surfaceHolder = surfaceHolder;
 			this.surfaceHolder.setFormat(PixelFormat.OPAQUE);
 			this.drawPanel = drawPanel;
@@ -160,15 +167,15 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 			this.isRunning = new AtomicBoolean();
 			this.gameModel = gameModel;
 		}
-		
+
 		public void setRunning(boolean isRunning) {
 			this.isRunning.set(isRunning);
 		}
-		
+
 		public void postInput(MotionEvent input) {
 			inputQueue.add(input);
 		}
-		
+
 		@Override
 		public void run() {
 			while (isRunning.get()) {
@@ -177,22 +184,23 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback{
 					gameModel.handleInput(inputQueue.remove());
 				}
 				if (surfaceHolder.getSurface().isValid()) {
-				Canvas canvas = surfaceHolder.lockCanvas();
+					Canvas canvas = surfaceHolder.lockCanvas();
 					if (canvas != null) {
-						synchronized(surfaceHolder) { // why??
+						synchronized (surfaceHolder) { // why??
 							canvas.drawColor(Color.WHITE);
-							//drawPanel.draw(canvas);
+							// drawPanel.draw(canvas);
 							drawPanel.postInvalidate();
 						}
 						surfaceHolder.unlockCanvasAndPost(canvas);
 					}
 				}
-				long timeLeftover = FRAME_MS - (System.currentTimeMillis() - frameStartTime);
+				long timeLeftover = FRAME_MS
+						- (System.currentTimeMillis() - frameStartTime);
 				if (timeLeftover > 0) {
 					try {
 						Thread.sleep(timeLeftover);
 					} catch (InterruptedException e) {
-						//Bad...
+						// Bad...
 					}
 				}
 			}

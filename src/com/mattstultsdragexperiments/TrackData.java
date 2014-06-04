@@ -24,7 +24,8 @@ import android.graphics.RectF;
 import android.view.Display;
 
 public class TrackData {
-	public static List<TrackData> readTracks(InputStream trackFile) throws SAXException, IOException, ParserConfigurationException {
+	public static List<TrackData> readTracks(InputStream trackFile)
+			throws SAXException, IOException, ParserConfigurationException {
 		Document doc = null;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
@@ -36,17 +37,19 @@ public class TrackData {
 			Node path = node.getAttributes().getNamedItem("d");
 			Node center = node.getAttributes().getNamedItem("center");
 			Node cycles = node.getAttributes().getNamedItem("cycles");
-			paths.add(new TrackData(path.getTextContent(), Float.parseFloat(center.getTextContent()), Integer.parseInt(cycles.getTextContent())));
+			paths.add(new TrackData(path.getTextContent(), Float
+					.parseFloat(center.getTextContent()), Integer
+					.parseInt(cycles.getTextContent())));
 		}
 		return Collections.unmodifiableList(paths);
 	}
-	
+
 	private final PathMeasure pathMeasure;
 	private final Path path;
 	private final float center;
 	private final int cycles;
 	private final RectF bounds;
-	
+
 	private TrackData(String pathDescription, float center, int cycles) {
 		pathMeasure = new PathMeasure();
 		path = getNormalizedPath(pathDescription, pathMeasure);
@@ -56,42 +59,43 @@ public class TrackData {
 		this.center = center;
 		this.cycles = cycles;
 	}
-	
+
 	public float getCenter() {
 		return center;
 	}
-	
+
 	public int getCycles() {
 		return cycles;
 	}
-	
+
 	public void getPathAtSize(Path out, float width, float height, float buffer) {
 		Matrix scaleMatrix = new Matrix();
-		scaleMatrix.setTranslate(width/2, height/2);
+		scaleMatrix.setTranslate(width / 2, height / 2);
 		out.set(this.path);
 		out.transform(scaleMatrix);
 		scaleMatrix.reset();
 		float scale = Math.min(width - buffer, height - buffer);
-		scaleMatrix.setScale(scale, scale, width/2, height/2);
+		scaleMatrix.setScale(scale, scale, width / 2, height / 2);
 		out.transform(scaleMatrix);
 	}
-	
+
 	private static Path getNormalizedPath(String path, PathMeasure pathMeasure) {
 		Path track = SVGParser.parsePath(path);
 		Matrix scaleMatrix = new Matrix();
 		RectF trackBounds = new RectF();
 		pathMeasure.setPath(track, true);
 		computeBoundsSlow(pathMeasure, trackBounds);
-		scaleMatrix.setTranslate(- trackBounds.centerX(), - trackBounds.centerY());
+		scaleMatrix
+				.setTranslate(-trackBounds.centerX(), -trackBounds.centerY());
 		track.transform(scaleMatrix);
 		scaleMatrix.reset();
-		float scale = 1f/(Math.max(trackBounds.width(), trackBounds.height()));
+		float scale = 1f / (Math.max(trackBounds.width(), trackBounds.height()));
 		scaleMatrix.setScale(scale, scale, 0, 0);
 		track.transform(scaleMatrix);
 		pathMeasure.setPath(track, true);
 		return track;
 	}
-	
+
 	private static void computeBoundsSlow(PathMeasure measure, RectF bounds) {
 		float pos[] = new float[2];
 		float tan[] = new float[2];

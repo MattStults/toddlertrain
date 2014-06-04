@@ -9,9 +9,11 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
+
 public class MainActivity extends ActionBarActivity {
 	private DrawPanel drawPanel;
 	private Train train;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -21,27 +23,29 @@ public class MainActivity extends ActionBarActivity {
 		drawPanel = new DrawPanel(this, game);
 		setContentView(drawPanel);
 		getWindow().setBackgroundDrawable(null);
-		
+
 		try {
 			Display display = this.getWindowManager().getDefaultDisplay();
-			Track track = new Track(TrackData.readTracks(getAssets().open("tracks.svg")) /*readTracks(display)*/, display.getWidth(), display.getHeight());
+			Track track = new Track(TrackData.readTracks(getAssets().open(
+					"tracks.svg")) /* readTracks(display) */,
+					display.getWidth(), display.getHeight());
 			train.setTrack(track);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();
-		//Debug.stopMethodTracing();
+		// Debug.stopMethodTracing();
 		drawPanel.pause();
 	}
-	
+
 	@Override
 	public void onResume() {
 		super.onResume();
-		//Debug.startMethodTracing("trainPerf");
+		// Debug.startMethodTracing("trainPerf");
 		updatePreferences(PreferenceManager.getDefaultSharedPreferences(this));
 		drawPanel.resume();
 	}
@@ -60,21 +64,21 @@ public class MainActivity extends ActionBarActivity {
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		switch (id) {
-		case R.id.action_settings :
+		case R.id.action_settings:
 			Intent intent = new Intent(this, SettingsActivity.class);
 			startActivity(intent);
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
+
 	private void updatePreferences(SharedPreferences sharedPreferences) {
 		Resources res = getResources();
-		train.setNumberOfCars(Integer.parseInt(
-				sharedPreferences.getString(res.getString(R.string.pref_carCount_key),
+		train.setNumberOfCars(Integer.parseInt(sharedPreferences.getString(
+				res.getString(R.string.pref_carCount_key),
 				res.getString(R.string.pref_carCount_default))));
-		train.setTrainScale(Float.parseFloat(
-				sharedPreferences.getString(res.getString(R.string.pref_trainScale_key),
+		train.setTrainScale(Float.parseFloat(sharedPreferences.getString(
+				res.getString(R.string.pref_trainScale_key),
 				res.getString(R.string.pref_trainScale_default))));
 	}
 

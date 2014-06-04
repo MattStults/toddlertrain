@@ -13,17 +13,20 @@ import android.graphics.RectF;
 import android.util.SparseArray;
 
 public class PathIntersectionFinder {
-	
-	public static int getNumberSegments(float pathLength, float center, float atomicLength) {
-		return (int)Math.ceil(pathLength / atomicLength) + 1;
+
+	public static int getNumberSegments(float pathLength, float center,
+			float atomicLength) {
+		return (int) Math.ceil(pathLength / atomicLength) + 1;
 	}
-	//This idea failed.  short circuit and do ever increasing.
-	public static List<Segment> getIntersections(float pathLength, float center, float atomicLength) {
+
+	// This idea failed. short circuit and do ever increasing.
+	public static List<Segment> getIntersections(float pathLength,
+			float center, float atomicLength) {
 		float start = Track.wrapFloat(center, atomicLength);
-		int reset = (int)(center / atomicLength);
-		
+		int reset = (int) (center / atomicLength);
+
 		int iterations = getNumberSegments(pathLength, center, atomicLength);
-		
+
 		List<Segment> ret = new ArrayList<Segment>(iterations);
 		int maxDepth = iterations - 1;
 		ret.add(new Segment(0, start, maxDepth - reset));
@@ -45,9 +48,10 @@ public class PathIntersectionFinder {
 		public final float start;
 		public final float stop;
 		public final int depth;
+
 		private Segment(float start, float stop, int depth) {
-			this.start = (int)start;
-			this.stop = (int)stop+2;
+			this.start = (int) start;
+			this.stop = (int) stop + 2;
 			this.depth = depth;
 		}
 	}
