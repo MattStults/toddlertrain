@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <ListPreference
+        android:key="@string/pref_trainScale_key"
+        android:title="@string/pref_trainScale"
+        android:dialogTitle="@string/pref_trainScale"
+        android:entries="@array/pref_trainScale_entries"
+        android:entryValues="@array/pref_trainScale_entries"
+        android:defaultValue="@string/pref_trainScale_default" />
+    
+    <ListPreference
+        android:key="@string/pref_carCount_key"
+        android:title="@string/pref_carCount"
+        android:dialogTitle="@string/pref_carCount"
+        android:entries="@array/pref_carCount_entries"
+        android:entryValues="@array/pref_carCount_entries"
+        android:defaultValue="@string/pref_carCount_default" />
+
+</PreferenceScreen>

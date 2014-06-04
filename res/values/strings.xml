@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pref_track">Track shape</string>
+    <string name="pref_carCount"># train cars</string>
+    <string name="pref_trainScale">Train scale</string>
+    <string name="increase_cars">Increase car count</string>
+    <string name="decrease_cars">Decrease car count</string>
+    <string name="increase_scale">Increase scale</string>
+    <string name="decrease_scale">Decrease scale</string>
+    <string name="app_name">Drag Experiments</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+</resources>
