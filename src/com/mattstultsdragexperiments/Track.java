@@ -100,7 +100,7 @@ class Track {
 		for (TrackData trackData : paths) {
 			Path path = new Path();
 			trackData.getPathAtSize(path, width, height, 300);
-			trackPaths.add(new TrackModel(path, trackData.getCenter()));
+			trackPaths.add(new TrackModel(path, trackData.getCenter(), trackData.getCycles()));
 		}
 		lastTrack = null;
 	}
@@ -349,7 +349,7 @@ class Track {
 	}
 	
 	public float registerDistance(float distanceTravelled) {
-		if (lastTrack == null || distanceTravelled >= nLapsPerTrack * lastTrack.getLength()) {
+		if (lastTrack == null || distanceTravelled >= lastTrack.getTrackEnd()) {
 			lastIdx = (lastIdx + 1) % trackPaths.size();
 			if (lastTrack != null) {
 				lastTrack.unload();

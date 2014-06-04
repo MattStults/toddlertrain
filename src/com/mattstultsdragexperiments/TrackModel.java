@@ -20,6 +20,7 @@ class TrackModel {
 	private static final float PIECE_SIZE = 500f;
 	
 	private final float center;
+	private final int cycles;
 	private final PathMeasure pathMeasure;
 	private final Matrix scratchMatrix = new Matrix();
 	private final List<List<TrackPiece>> tracks;
@@ -30,11 +31,12 @@ class TrackModel {
 	private final List<TrackPiece> tracksInOrder;
 	private AsyncLoaderTask loaderTask;
 	
-	public TrackModel(Path path, float centerPercent) {
+	public TrackModel(Path path, float centerPercent, int cycles) {
 		this.pathMeasure = new PathMeasure();
 		this.pathMeasure.setPath(path, true);;
 		totalLength = pathMeasure.getLength();
 		this.center = centerPercent * totalLength;
+		this.cycles = cycles;
 		segments = PathIntersectionFinder.getIntersections(totalLength, center, PIECE_SIZE);
 		this.depths = segments.size();
 		tracks = new ArrayList<List<TrackPiece>>();
@@ -89,6 +91,10 @@ class TrackModel {
 	}
 	public float getLength() {
 		return totalLength;
+	}
+	
+	public float getTrackEnd() {
+		return totalLength * cycles;
 	}
 	public void assignTrackDepths(List<TrackPiece> trackInput, List<List<TrackPiece>> tracksByDepths) {
 		// For now just do linearly increasing for now.

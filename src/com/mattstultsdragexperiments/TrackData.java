@@ -35,7 +35,8 @@ public class TrackData {
 			Node node = nodes.item(i);
 			Node path = node.getAttributes().getNamedItem("d");
 			Node center = node.getAttributes().getNamedItem("center");
-			paths.add(new TrackData(path.getTextContent(), Float.parseFloat(center.getTextContent())));
+			Node cycles = node.getAttributes().getNamedItem("cycles");
+			paths.add(new TrackData(path.getTextContent(), Float.parseFloat(center.getTextContent()), Integer.parseInt(cycles.getTextContent())));
 		}
 		return Collections.unmodifiableList(paths);
 	}
@@ -43,19 +44,25 @@ public class TrackData {
 	private final PathMeasure pathMeasure;
 	private final Path path;
 	private final float center;
+	private final int cycles;
 	private final RectF bounds;
 	
-	private TrackData(String pathDescription, float center) {
+	private TrackData(String pathDescription, float center, int cycles) {
 		pathMeasure = new PathMeasure();
 		path = getNormalizedPath(pathDescription, pathMeasure);
 		pathMeasure.setPath(path, true);
 		this.bounds = new RectF();
 		computeBoundsSlow(pathMeasure, bounds);
 		this.center = center;
+		this.cycles = cycles;
 	}
 	
 	public float getCenter() {
 		return center;
+	}
+	
+	public int getCycles() {
+		return cycles;
 	}
 	
 	public void getPathAtSize(Path out, float width, float height, float buffer) {
