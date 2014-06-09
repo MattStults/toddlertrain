@@ -115,18 +115,6 @@ class Track {
 		lastTrack = null;
 	}
 
-	public interface TrackRider {
-		float getDistanceFront();
-
-		float getDistanceBack();
-
-		float getDistanceTravelled();
-
-		void Draw(Canvas canvas);
-
-		void setTrackPosition(float distanceTravelled);
-	}
-
 	private static Path scratchPath = new Path();
 
 	static class TrackPiece {

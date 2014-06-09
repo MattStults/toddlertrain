@@ -14,7 +14,6 @@ import android.os.AsyncTask;
 
 import com.mattstultsdragexperiments.PathIntersectionFinder.Segment;
 import com.mattstultsdragexperiments.Track.TrackPiece;
-import com.mattstultsdragexperiments.Track.TrackRider;
 
 class TrackModel {
 	private static final float PIECE_SIZE = 500f;

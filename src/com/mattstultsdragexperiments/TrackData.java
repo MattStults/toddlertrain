@@ -30,7 +30,7 @@ public class TrackData {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		doc = db.parse(trackFile);
-		NodeList nodes = doc.getElementsByTagName("svg:path");
+		NodeList nodes = doc.getElementsByTagName("path");
 		List<TrackData> paths = new ArrayList<TrackData>();
 		for (int i = 0; i < nodes.getLength(); i++) {
 			Node node = nodes.item(i);

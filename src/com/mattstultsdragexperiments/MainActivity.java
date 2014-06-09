@@ -18,14 +18,14 @@ public class MainActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		TrainGameModel game = new TrainGameModel();
-		train = new Train();
-		game.addModel(train);
 		drawPanel = new DrawPanel(this, game);
 		setContentView(drawPanel);
 		getWindow().setBackgroundDrawable(null);
 
 		try {
 			Display display = this.getWindowManager().getDefaultDisplay();
+			train = new Train(TrainCarData.readTrainPieces(getAssets().open("trainCars.svg")));
+			game.addModel(train);
 			Track track = new Track(TrackData.readTracks(getAssets().open(
 					"tracks.svg")) /* readTracks(display) */,
 					display.getWidth(), display.getHeight());

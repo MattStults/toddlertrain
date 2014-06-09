@@ -1,0 +1,75 @@
+<svg width="200px" height="200px" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <g id="engine">
+    <rect
+      style="fill:none;stroke:#ff0000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none"
+      id="bounds"
+      width="15"
+      height="6.5"
+      x="-7.5"
+      y="-5.5" />
+    <path
+         style="fill:#0000ff;stroke:none"
+         d="m -7,-4.5 3.5,0 0,2.5 -3.5,0 z"
+         id="room" />
+      <path
+         style="fill:#ffcc00;stroke:none"
+         d="m -7,-5 3.5,0 0,0.5 -2.5,0 0,0.125 -1,0 z"
+         id="roof" />
+      <path
+         style="fill:#ffcc00;stroke:none;fill-opacity:1"
+         d="m -3.5,-0.25 c 0,0.4 -0.3,0.7 -0.7,0.7 -0.4,0 -0.7,-0.3 -0.7,-0.7 0,-0.4 0.3,-0.7 0.7,-0.7 0.4,0 0.7,0.3 0.7,0.7 z"
+         id="wheel1" />
+      <path
+         style="fill:#ffcc00;stroke:none"
+         d="m 7,-0.25 c 0,0.4 -0.3,0.7 -0.7,0.7 -0.4,0 -0.7,-0.3 -0.7,-0.7 0,-0.4 0.3,-0.7 0.7,-0.7 0.4,0 0.7,0.3 0.7,0.7 z"
+         id="wheel5" />
+      <path
+         style="fill:#000080;stroke:none"
+         d="m -7,-2 0,0.25 1.25,1 0.25,0 c 0.125,0 0.25,0.125 0.25,0.25 -0.25,0 -0.25,0.25 -0.125,0.5 L 5.75,0 c 0,-0.75 0.2929688,-0.953125 0.75,-1 l -3.375,0 0,-1 -0.25,0 0,1 -1.75,0 0,-1 -0.25,0 0,1 L -1,-1 c -0.5,0 -2.5,-0.25 -2.5,-1 z m 2.7,1.1875 0,0.5 -0.45,0 c 0,-0.25 0.2,-0.5 0.45,-0.5 z m 0.2,0 c 0.25,0 0.44375,0.25 0.44375,0.5 l -0.44375,0 z"
+         id="carriage" />
+      <path
+         style="fill:#5555ff;stroke:none"
+         d="m -3.5,-4.5 2.25,0 0,-0.5 0.25,0 0,0.25 c 0.125,0 0.25,0.125 0.25,0.25 l 1.25,0 c 0,-0.5 1,-0.5 1,0 l 1,0 0,-0.5 1,0 0,0.5 -0.5,0.25 0,2.25 -4.5,0 -1,1 -2.5,0 -0.5,-0.5 0,-0.5 2,0 z"
+         id="boiler" />
+      <path
+         style="fill:#ffdd55;stroke:none"
+         d="m 3.5,-4.5 1,0 0,-0.5 c -0.125,-0.125 0.75,-0.125 0.625,0 l 0,0.5 0.25,0 c 0.25,0 0.25,-0.5 0.5,-0.5 l 0.5,0 0,0.5 c -0.5,0 -0.5,0.25 -0.5,0.5 0.25,0.5 0.25,1.5 0,2 l -2.85,0 0,-2.25 z"
+         id="front" />
+      <path
+         style="fill:none;stroke:#ffff00;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+         d="m -3.5,-3.25 8.5,0 1,1.25 1,0 0,1 -1,0 0,-1 -9.5,0 z"
+         id="rail" />
+      <path
+         style="fill:#ffcc00;stroke:none"
+         d="m 1,-0.5 c 0,0.36 -0.25,0.68 -0.57,0.84 -0.23,0.12 -0.52,0.12 -0.74,0 -0.3,-0.16 -0.54,-0.48 -0.55,-0.83 0,-0.36 0.26,-0.68 0.57,-0.84 0.23,-0.12 0.52,-0.12 0.74,0 0.3,0.16 0.54,0.48 0.55,0.83 z"
+         id="wheel2" />
+      <path
+         style="fill:#ffcc00;stroke:none"
+         d="M 3,-0.5 C 3,-0.14 2.75,0.18 2.43,0.34 2.2,0.46 1.91,0.46 1.69,0.34 1.39,0.18 1.15,-0.14 1.14,-0.49 c 0,-0.36 0.26,-0.68 0.57,-0.84 0.23,-0.12 0.52,-0.12 0.74,0 0.3,0.16 0.54,0.48 0.55,0.83 z"
+         id="wheel3" />
+      <path
+         style="fill:#ffcc00;stroke:none"
+         d="M 5,-0.5 C 5,-0.14 4.75,0.18 4.43,0.34 4.2,0.46 3.91,0.46 3.69,0.34 3.39,0.18 3.15,-0.14 3.14,-0.49 c 0,-0.36 0.26,-0.68 0.57,-0.84 0.23,-0.12 0.52,-0.12 0.74,0 0.3,0.16 0.54,0.48 0.55,0.83 z"
+         id="wheel4" />
+      <path
+         style="fill:#000080;fill-opacity:1;stroke:none"
+         d="m 5,-1 0.5,0 0,-1.5 -0.1,0 c 0,0.25 -0.3,0.25 -0.3,0 l -0.1,0 z"
+         id="support" />
+      <path
+       style="fill:#ffcc00;fill-opacity:1;stroke:none"
+       d="m -6.75,-4.125 0.5,0 0,0.875 -0.5,0 z"
+       id="window-door" />
+    <path
+       style="fill:#ffcc00;fill-opacity:1;stroke:none"
+       d="m -5.875,-4.25 1,0 0,1 -1,0 z"
+       id="window1" />
+    <path
+       style="fill:#ffcc00;fill-opacity:1;stroke:none"
+       d="m -4.625,-4.25 1,0 0,1 -1,0 z"
+       id="window2" />
+    <path
+       style="fill:none;stroke:#ffff00;stroke-width:0.1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="m -7,-2 0,1.625 M -6,-2 l 0,1.625 m -1,-1.25 1,0 m -1,0.5 1,0 m -1,0.5 1,0"
+       id="ladder" />
+    </g>
+</svg>
