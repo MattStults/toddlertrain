@@ -11,5 +11,5 @@ public interface TrackRider {
 
 	void Draw(Canvas canvas);
 
-	void setTrackPosition(float distanceTravelled);
+	void setFrontPosition(float distanceTravelled);
 }

@@ -46,18 +46,25 @@ public class TrainCarData {
 		return Collections.unmodifiableList(paths);
 	}
 	
+	private static final Pattern POINT = Pattern.compile("\\s([-]?\\d*[.]?\\d*)\\s*,([-]?\\d*[.]?\\d*)");
 	private static TrainCarData fromNode(Node carGroup) {
 		NodeList parts = carGroup.getChildNodes();
 		List<Part> pathDescriptions = new ArrayList<Part>(parts.getLength());
 		RectF bounds = null;
+		float originX = 0f, originY = 0f;
 		for (int i = 0; i < parts.getLength(); i++) {
 			Node part = parts.item(i);
-			if ("path".equals(part.getNodeName())) {
-				Node name = part.getAttributes().getNamedItem("id");
-				Node path = part.getAttributes().getNamedItem("d");
-				Node style = part.getAttributes().getNamedItem("style");
-				pathDescriptions.add(new Part(name.getTextContent(), path.getTextContent(), style.getTextContent()));
-			} else if ("rect".equals(part.getNodeName())) {
+			if (!part.hasAttributes()) {
+				continue;
+			}
+			String id = part.getAttributes().getNamedItem("id").getTextContent();
+			if (id.startsWith("origin")) {
+				Matcher matcher = POINT.matcher(part.getAttributes().getNamedItem("d").getTextContent());
+				if (matcher.find()) {
+					originX = Float.parseFloat(matcher.group(1));
+					originY = Float.parseFloat(matcher.group(2));
+				}
+			} else if (id.startsWith("bounds")) {
 				bounds = new RectF();
 				Node left = part.getAttributes().getNamedItem("x");
 				Node top = part.getAttributes().getNamedItem("y");
@@ -67,18 +74,27 @@ public class TrainCarData {
 				bounds.right = bounds.left + Float.parseFloat(width.getTextContent());
 				bounds.top = Float.parseFloat(top.getTextContent());
 				bounds.bottom = bounds.top + Float.parseFloat(height.getTextContent());
+			} else {
+				Node name = part.getAttributes().getNamedItem("id");
+				Node path = part.getAttributes().getNamedItem("d");
+				Node style = part.getAttributes().getNamedItem("style");
+				pathDescriptions.add(new Part(name.getTextContent(), path.getTextContent(), style.getTextContent()));
 			}
 		}
 		Node name = carGroup.getAttributes().getNamedItem("id");
-		return new TrainCarData(name.getTextContent(), bounds, pathDescriptions);
+		return new TrainCarData(name.getTextContent(), originX, originY, bounds, pathDescriptions);
 	}
 
 	private final String name;
 	private final List<Part> parts;
 	private final RectF bounds;
+	private final float originX;
+	private final float originY;
 
-	private TrainCarData(String name, RectF bounds, List<Part> parts) {
+	private TrainCarData(String name, float originX, float originY, RectF bounds, List<Part> parts) {
 		this.name = name;
+		this.originX = originX;
+		this.originY = originY;
 		this.bounds = bounds;
 		List<Part> builder = new ArrayList<Part>();
 		builder.addAll(parts);
@@ -100,12 +116,12 @@ public class TrainCarData {
 			private float distanceTravelled;
 			@Override
 			public float getDistanceFront() {
-				return distanceTravelled + bounds.right * scale;
+				return distanceTravelled + (bounds.right - originX) * scale;
 			}
 
 			@Override
 			public float getDistanceBack() {
-				return distanceTravelled + bounds.left * scale;
+				return distanceTravelled + (bounds.left - originX) * scale;
 			}
 
 			@Override
@@ -115,12 +131,12 @@ public class TrainCarData {
 
 			@Override
 			public void Draw(Canvas canvas) {
-				canvas.drawBitmap(bitmap, bounds.left * scale, bounds.top * scale, null);
+				canvas.drawBitmap(bitmap, (bounds.left - originX) * scale, (bounds.top - originY) * scale, null);
 			}
 
 			@Override
-			public void setTrackPosition(float distanceTravelled) {
-				this.distanceTravelled = distanceTravelled;
+			public void setFrontPosition(float distanceTravelled) {
+				this.distanceTravelled = distanceTravelled - (bounds.right - originX) * scale;
 			}
 			
 		};

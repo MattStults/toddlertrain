@@ -72,11 +72,11 @@ class Train implements Model {
 	@Override
 	public void draw(Canvas canvas) {
 		distanceTravelled = track.get().registerDistance(distanceTravelled);
-		float trainScale = scale.get();
-		int i = trackRiders.size() - 1;
-		for (TrackRider trainCar : trackRiders) {
-			trainCar.setTrackPosition(distanceTravelled - i-- * trainScale
-					* carSpacing);
+		float position = distanceTravelled;
+		for (int i = trackRiders.size()-1; i >=0; i--) {
+			TrackRider trainCar = trackRiders.get(i);
+			trainCar.setFrontPosition(position);
+			position = trainCar.getDistanceBack();
 		}
 		if (track.get() != null) {
 			track.get().draw(canvas, distanceTravelled, trackRiders);
@@ -88,7 +88,7 @@ class Train implements Model {
 		final float trainScale = scale.get();
 		int nTrainPieces = nCars.get() + 1;
 		List<TrackRider> ret = new ArrayList<TrackRider>();
-		for (int i = nTrainPieces; i >= 0; i--) {
+		for (int i = nTrainPieces -1; i >=0; i--) {
 			if (i < data.size()) {
 				ret.add(data.get(i).getCarAtHeight(height));
 				continue;
@@ -113,8 +113,8 @@ class Train implements Model {
 				}
 
 				@Override
-				public void setTrackPosition(float percentAlong) {
-					this.percentAlong = percentAlong;
+				public void setFrontPosition(float percentAlong) {
+					this.percentAlong = percentAlong - width() / 2f;
 				}
 
 				@Override
@@ -194,13 +194,5 @@ class Train implements Model {
 			trackingPointer = null;
 			break;
 		}
-	}
-
-	float getPathPercent(float raw) {
-		float position = raw - ((int) raw);
-		if (position < 0) {
-			position += 1;
-		}
-		return position;
 	}
 }

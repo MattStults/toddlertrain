@@ -299,8 +299,8 @@ class Track {
 		}
 
 		@Override
-		public void setTrackPosition(float distanceTravelled) {
-			this.distance = distanceTravelled;
+		public void setFrontPosition(float distanceTravelled) {
+			this.distance = distanceTravelled - width;
 		}
 
 	};
@@ -320,7 +320,7 @@ class Track {
 		this.trackRiders.add(arrowHead);
 		arrowPaint.setColor(trackPaint.get(lastCycle + 1).getColor());
 		arrowPaint.setAlpha(255);
-		arrowHead.setTrackPosition(distanceTravelled + arrowLength - 1);
+		arrowHead.setFrontPosition(distanceTravelled + arrowLength - 1);
 		lastTrack.draw(canvas, distance, arrowLength + 1, lastCycle,
 				lastCycle + 1, this.trackRiders);
 	}
