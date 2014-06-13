@@ -300,7 +300,7 @@ class Track {
 
 		@Override
 		public void setFrontPosition(float distanceTravelled) {
-			this.distance = distanceTravelled - width;
+			this.distance = distanceTravelled;
 		}
 
 	};
@@ -336,13 +336,13 @@ class Track {
 		}
 	}
 
-	private final float scratch[] = new float[2];
-
-	public void getPosition(float distanceAlongPath, float[] position) {
+	public void getPosition(float distanceAlongPath, float[] position, float[] tangent) {
 		PathMeasure pathMeasure = lastTrack.getPathMeasure();
 		float distance = wrapFloat(distanceAlongPath, pathMeasure.getLength());
-		lastTrack.getPathMeasure().getPosTan(distance, position, scratch);
+		lastTrack.getPathMeasure().getPosTan(distance, position, tangent);
 	}
+	
+	private final float scratch[] = new float[2];
 
 	public float getClosestPathPosition(float distanceAlongPath,
 			float distanceToMovePerFrame, float minAcceptableDistance,

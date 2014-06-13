@@ -48,6 +48,8 @@ class Train implements Model {
 			1.5f);
 	private final Path scrathPath = new Path();
 	private final List<TrackRider> trackRiders;
+	private final float[] position = new float[2];
+	private final float[] tangent = new float[2];
 	
 	public Train(List<TrainCarData> cars) {
 		trackRiders = buildTrackRiders(100, cars);
@@ -72,11 +74,11 @@ class Train implements Model {
 	@Override
 	public void draw(Canvas canvas) {
 		distanceTravelled = track.get().registerDistance(distanceTravelled);
-		float position = distanceTravelled;
+		float curPos = distanceTravelled;
 		for (int i = trackRiders.size()-1; i >=0; i--) {
 			TrackRider trainCar = trackRiders.get(i);
-			trainCar.setFrontPosition(position);
-			position = trainCar.getDistanceBack();
+			trainCar.setFrontPosition(curPos);
+			curPos = trainCar.getDistanceBack();
 		}
 		if (track.get() != null) {
 			track.get().draw(canvas, distanceTravelled, trackRiders);
@@ -174,8 +176,7 @@ class Train implements Model {
 		case MotionEvent.ACTION_DOWN:
 			break;
 		case MotionEvent.ACTION_MOVE:
-			float position[] = new float[2];
-			track.get().getPosition(distanceTravelled, position);
+			track.get().getPosition(distanceTravelled, position, tangent);
 			if (trackingPointer == null
 					|| event.findPointerIndex(trackingPointer) < 0) {
 				trackingPointer = TrainGameModel.findClosestPointer(event,
