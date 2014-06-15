@@ -68,6 +68,9 @@ public class MainActivity extends ActionBarActivity {
 			Intent intent = new Intent(this, SettingsActivity.class);
 			startActivity(intent);
 			return true;
+		case R.id.quit_button:
+			finish();
+			System.exit(0);
 		}
 		return super.onOptionsItemSelected(item);
 	}

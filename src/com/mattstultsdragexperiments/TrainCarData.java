@@ -160,10 +160,12 @@ public class TrainCarData {
 	}
 	private static final Pattern FILL = Pattern.compile("fill:[#]?([^;]*)[;]?$?");
 	private static final Pattern STROKE = Pattern.compile("stroke:[#]?([^;]*)[;]?$?");
+	private static final Pattern FILL_OPACITY = Pattern.compile("fill-opacity:([^;]*)[;]?$?");
+	private static final Pattern STROKE_OPACITY = Pattern.compile("stroke-opacity:([^;]*)[;]?$?");
 	private static List<Paint> fromStyle(String style){
 		List<Paint> ret = new ArrayList<Paint>(2);
-		Paint fill = readColor(FILL.matcher(style), Style.FILL);
-		Paint stroke = readColor(STROKE.matcher(style), Style.STROKE);
+		Paint fill = readColor(style, Style.FILL);
+		Paint stroke = readColor(style, Style.STROKE);
 		if (fill != null) {
 			ret.add(fill);
 		}
@@ -173,11 +175,41 @@ public class TrainCarData {
 		return ret;
 	}
 	
-	private static Paint readColor(Matcher matcher, Style style) {
-		if (matcher.find()) {
-			String input = matcher.group(1);
+	private static float getOpacity(Matcher opacityMatcher) {
+		if (opacityMatcher.find()) {
+			return Float.parseFloat(opacityMatcher.group(1));
+		}
+		return 1f;
+	}
+	
+	private static String getOpacityHex(Matcher opacityMatcher) {
+		float opacity = getOpacity(opacityMatcher);
+		String ret = Integer.toString((int)(opacity * 255), 16);
+		if (ret.length() == 1) {
+			return "0" + ret;
+		}
+		return ret;
+	}
+	
+	private static Paint readColor(String styleString, Style style) {
+		Matcher colorMatcher;
+		Matcher opacityMatcher;
+		switch(style) {
+		case FILL:
+			colorMatcher = FILL.matcher(styleString);
+			opacityMatcher = FILL_OPACITY.matcher(styleString);
+			break;
+		case STROKE:
+			colorMatcher = STROKE.matcher(styleString);
+			opacityMatcher = STROKE_OPACITY.matcher(styleString);
+			break;
+			default:
+				throw new IllegalStateException("Unknown style: " + style);
+		}
+		if (colorMatcher.find()) {
+			String input = colorMatcher.group(1);
 			Integer color = (input != null && input.length() != 0 && !"none".equals(input))
-					? (int) Long.parseLong("ff"+input, 16)
+					? (int) Long.parseLong(getOpacityHex(opacityMatcher)+input, 16)
 					: null;
 			if (color != null) {
 				Paint paint = new Paint();

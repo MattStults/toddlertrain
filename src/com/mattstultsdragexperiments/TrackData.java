@@ -35,11 +35,16 @@ public class TrackData {
 		for (int i = 0; i < nodes.getLength(); i++) {
 			Node node = nodes.item(i);
 			Node path = node.getAttributes().getNamedItem("d");
-			Node center = node.getAttributes().getNamedItem("center");
-			Node cycles = node.getAttributes().getNamedItem("cycles");
-			paths.add(new TrackData(path.getTextContent(), Float
-					.parseFloat(center.getTextContent()), Integer
-					.parseInt(cycles.getTextContent())));
+			Node centerNode = node.getAttributes().getNamedItem("center");
+			float center = centerNode != null
+					? Float.parseFloat(centerNode.getTextContent())
+					: 0;
+			Node cyclesNode = node.getAttributes().getNamedItem("cycles");
+			int cycles = cyclesNode != null
+					? Integer.parseInt(cyclesNode.getTextContent())
+					: 3;
+			
+			paths.add(new TrackData(path.getTextContent(), center, cycles));
 		}
 		return Collections.unmodifiableList(paths);
 	}
