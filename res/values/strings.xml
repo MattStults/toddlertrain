@@ -10,6 +10,7 @@
     <string name="app_name">Drag Experiments</string>
     <string name="hello_world">Hello world!</string>
     <string name="quit_button">Close</string>
+    <string name="toddler_lock">Toggle toddler lock</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_settings">SettingsActivity</string>
 

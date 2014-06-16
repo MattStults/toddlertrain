@@ -3,10 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.mattstultsdragexperiments.MainActivity" >
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+        android:id="@+id/toddler_lock"
+        android:orderInCategory="9"
+        android:title="@string/toddler_lock"
+        app:showAsAction="always"/>
     <item
         android:id="@+id/quit_button"
         android:orderInCategory="10"

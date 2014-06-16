@@ -1,26 +1,46 @@
 package com.mattstultsdragexperiments;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.WindowManager;
 
 public class MainActivity extends ActionBarActivity {
 	private DrawPanel drawPanel;
 	private Train train;
+	private Intent toddlerLockIntent;
+	private boolean isToddlerLocked;
+	
+	private void doBindService() {
+		startService((toddlerLockIntent = new Intent(this, ToddlerLockService.class)));
+	}
+	
+	private void doStopService() {
+		stopService(toddlerLockIntent);
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		TrainGameModel game = new TrainGameModel();
 		drawPanel = new DrawPanel(this, game);
 		setContentView(drawPanel);
 		getWindow().setBackgroundDrawable(null);
+		doBindService();
 
 		try {
 			Display display = this.getWindowManager().getDefaultDisplay();
@@ -33,6 +53,15 @@ public class MainActivity extends ActionBarActivity {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// Ignore back when in toddler lock.
+		if (isToddlerLocked && (keyCode == KeyEvent.KEYCODE_BACK)) {
+			return true;
+		}
+		return super.onKeyDown(keyCode, event);
 	}
 
 	@Override
@@ -49,6 +78,11 @@ public class MainActivity extends ActionBarActivity {
 		updatePreferences(PreferenceManager.getDefaultSharedPreferences(this));
 		drawPanel.resume();
 	}
+	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -64,12 +98,17 @@ public class MainActivity extends ActionBarActivity {
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
 		switch (id) {
-		case R.id.action_settings:
-			Intent intent = new Intent(this, SettingsActivity.class);
-			startActivity(intent);
+		case R.id.toddler_lock:
+			isToddlerLocked = !isToddlerLocked;
+			if (isToddlerLocked) {
+				doBindService();
+			} else {
+				doStopService();
+			}
 			return true;
 		case R.id.quit_button:
 			finish();
+			doStopService();
 			System.exit(0);
 		}
 		return super.onOptionsItemSelected(item);
