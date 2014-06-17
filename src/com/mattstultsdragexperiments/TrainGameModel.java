@@ -2,16 +2,26 @@ package com.mattstultsdragexperiments;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import android.graphics.Canvas;
 import android.view.MotionEvent;
 
 public class TrainGameModel implements DrawPanel.GameModel {
 	private final float[] offset = new float[2];
-	private final Collection<Model> models = new ArrayList<Model>();
+	private final List<Model> models = new ArrayList<Model>();
 
 	public void addModel(Model model) {
 		models.add(model);
+	}
+	
+	public void addModelFront(Model model) {
+		removeModel(model);
+		models.add(0, model);
+	}
+	
+	public void removeModel(Model model) {
+		models.remove(model);
 	}
 
 	public void setOffset(int[] offset) {
@@ -29,7 +39,9 @@ public class TrainGameModel implements DrawPanel.GameModel {
 	@Override
 	public void handleInput(MotionEvent event) {
 		for (Model model : models) {
-			model.handleInput(offset, event);
+			if (model.handleInput(offset, event)) {
+				return; // We've handled the input--we're done.
+			}
 		}
 	}
 

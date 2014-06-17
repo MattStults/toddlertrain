@@ -6,5 +6,5 @@ import android.view.MotionEvent;
 public interface Model {
 	void draw(Canvas canvas);
 
-	void handleInput(float[] offset, MotionEvent event);
+	boolean handleInput(float[] offset, MotionEvent event);
 }

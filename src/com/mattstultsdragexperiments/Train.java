@@ -171,7 +171,7 @@ class Train implements Model {
 	}
 
 	@Override
-	public void handleInput(float[] offset, MotionEvent event) {
+	public boolean handleInput(float[] offset, MotionEvent event) {
 		switch (event.getActionMasked()) {
 		case MotionEvent.ACTION_DOWN:
 			break;
@@ -188,6 +188,7 @@ class Train implements Model {
 						event.getY(idx) - offset[1] };
 				distanceTravelled = track.get().getClosestPathPosition(
 						distanceTravelled, distanceCanMovePerFrame, 300, in);
+				return true;
 			}
 			break;
 		case MotionEvent.ACTION_UP:
@@ -195,5 +196,6 @@ class Train implements Model {
 			trackingPointer = null;
 			break;
 		}
+		return false;
 	}
 }
