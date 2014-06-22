@@ -113,6 +113,7 @@ public class TrainCarData {
 			part.draw(c);
 		}
 		return new TrackRider() {
+			private float xScale = 1f;
 			private float distanceTravelled;
 			@Override
 			public float getDistanceFront() {
@@ -130,7 +131,10 @@ public class TrainCarData {
 			}
 
 			@Override
-			public void Draw(Canvas canvas) {
+			public void draw(Canvas canvas, float[] tangent) {
+				float scaleGoal = tangent[0] < 0 ? -1 : 1;
+				xScale = xScale + (scaleGoal - xScale)/10f;
+				canvas.scale(1f, xScale);
 				canvas.drawBitmap(bitmap, (bounds.left - originX) * scale, (bounds.top - originY) * scale, null);
 			}
 

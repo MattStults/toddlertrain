@@ -22,6 +22,8 @@ class TrackModel {
 	private final int cycles;
 	private final PathMeasure pathMeasure;
 	private final Matrix scratchMatrix = new Matrix();
+	private final float[] scratchPosition = new float[2];
+	private final float[] scratchTangent = new float[2];
 	private final List<List<TrackPiece>> tracks;
 	private final List<List<TrackRider>> riders;
 	private final int depths;
@@ -178,7 +180,8 @@ class TrackModel {
 		canvas.save();
 		getMatrix(trackRider.getDistanceTravelled(), scratchMatrix);
 		canvas.concat(scratchMatrix);
-		trackRider.Draw(canvas);
+		pathMeasure.getPosTan(getPathPosition(trackRider.getDistanceTravelled()), scratchPosition, scratchTangent);
+		trackRider.draw(canvas, scratchTangent);
 		canvas.restore();
 	}
 

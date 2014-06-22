@@ -293,7 +293,7 @@ class Track {
 		}
 
 		@Override
-		public void Draw(Canvas canvas) {
+		public void draw(Canvas canvas, float[] tangent) {
 			canvas.translate(0, -50);
 			canvas.drawBitmap(arrow, 0, 0, arrowPaint);
 		}

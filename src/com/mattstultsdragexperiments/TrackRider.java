@@ -9,7 +9,7 @@ public interface TrackRider {
 
 	float getDistanceTravelled();
 
-	void Draw(Canvas canvas);
+	void draw(Canvas canvas, float[] tangent);
 
 	void setFrontPosition(float distanceTravelled);
 }
