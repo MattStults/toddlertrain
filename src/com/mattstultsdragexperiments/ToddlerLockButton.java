@@ -30,10 +30,7 @@ public class ToddlerLockButton implements Model{
 		CREATED(3000L, false) {
 			@Override
 			void updatePaint(Paint lockPaint, Paint textPaint, long statusStart, long currentTime) {
-				long msIn = currentTime - statusStart;
-				double cycle = (((float)msIn) / cycleLenthMs) * Math.PI * 2 ;
-				int alpha = (int)(255*(1f + (float)Math.cos(cycle)) / 2f);
-				lockPaint.setAlpha(alpha);
+				lockPaint.setAlpha(255);
 				textPaint.setAlpha(255);
 			}
 		},
