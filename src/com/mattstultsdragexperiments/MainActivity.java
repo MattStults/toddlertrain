@@ -1,6 +1,11 @@
 package com.mattstultsdragexperiments;
 
+import java.util.Map;
+
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -15,10 +20,12 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 
 public class MainActivity extends ActionBarActivity {
+	public static final String COMPONENT_NAME = "com.mattstultsdragexperiments.MainActivity";
 	private DrawPanel drawPanel;
 	private Train train;
 	private TrainGameModel game;
 	private Intent toddlerLockIntent;
+	private Map<String,SvgData> icons;
 	private boolean isToddlerLocked;
 	private final ToddlerLockButton toddlerLockButton = new ToddlerLockButton(
 			new ToddlerLockButton.OnUnlockCallback() {
@@ -54,14 +61,15 @@ public class MainActivity extends ActionBarActivity {
 		getWindow().setBackgroundDrawable(null);
 
 		try {
+			icons = SvgData.readSvgObjectLibrary(getAssets().open("icons.svg"));
 			Display display = this.getWindowManager().getDefaultDisplay();
-			train = new Train(TrainCarData.readTrainPieces(getAssets().open("trainCars.svg")));
+			train = new Train(SvgData.readSvgObjects(getAssets().open("trainCars.svg")));
 			game.addModelFront(train);
 			Track track = new Track(TrackData.readTracks(getAssets().open(
 					"tracks.svg")) /* readTracks(display) */,
 					display.getWidth(), display.getHeight());
 			train.setTrack(track);
-			toddlerLockButton.setBackgroundDimensions(display.getWidth(), display.getHeight());
+			toddlerLockButton.initializeForScreen(icons.get("lock"), this, display.getWidth(), display.getHeight());
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -71,6 +79,7 @@ public class MainActivity extends ActionBarActivity {
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		// Ignore back when in toddler lock.
 		if (isToddlerLocked && (keyCode == KeyEvent.KEYCODE_BACK)) {
+			this.toddlerLockButton.setStatus(ToddlerLockButton.Status.ATTEMPTED_APP_LEAVE);
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
@@ -89,6 +98,9 @@ public class MainActivity extends ActionBarActivity {
 		// Debug.startMethodTracing("trainPerf");
 		updatePreferences(PreferenceManager.getDefaultSharedPreferences(this));
 		drawPanel.resume();
+		if (isToddlerLocked) {
+			toddlerLockButton.setStatus(ToddlerLockButton.Status.ATTEMPTED_APP_LEAVE);
+		}
 	}
 	
 	@Override
@@ -115,6 +127,7 @@ public class MainActivity extends ActionBarActivity {
 			if (isToddlerLocked) {
 				doBindService();
 				game.addModel(toddlerLockButton);
+				toddlerLockButton.setStatus(ToddlerLockButton.Status.CREATED);
 				getSupportActionBar().hide();
 			}
 			return true;

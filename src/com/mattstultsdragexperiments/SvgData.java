@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,24 +33,33 @@ import android.graphics.PathMeasure;
 import android.graphics.RectF;
 import android.view.Display;
 
-public class TrainCarData {
-	public static List<TrainCarData> readTrainPieces(InputStream trackFile)
+public class SvgData {
+	public static List<SvgData> readSvgObjects(InputStream trackFile)
 			throws SAXException, IOException, ParserConfigurationException {
 		Document doc = null;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		doc = db.parse(trackFile);
-		NodeList cars = doc.getElementsByTagName("g");
-		List<TrainCarData> paths = new ArrayList<TrainCarData>();
-		for (int i = 0; i < cars.getLength(); i++) {
-			paths.add(fromNode(cars.item(i)));
+		NodeList groups = doc.getElementsByTagName("g");
+		List<SvgData> paths = new ArrayList<SvgData>();
+		for (int i = 0; i < groups.getLength(); i++) {
+			paths.add(fromNode(groups.item(i)));
 		}
 		return Collections.unmodifiableList(paths);
 	}
 	
+	public static Map<String, SvgData> readSvgObjectLibrary(InputStream file) throws SAXException, IOException, ParserConfigurationException {
+		List<SvgData> objects = readSvgObjects(file);
+		Map<String, SvgData> library = new HashMap<String, SvgData>();
+		for (SvgData data : objects) {
+			library.put(data.getName(), data);
+		}
+		return Collections.unmodifiableMap(library);
+	}
+	
 	private static final Pattern POINT = Pattern.compile("\\s([-]?\\d*[.]?\\d*)\\s*,([-]?\\d*[.]?\\d*)");
-	private static TrainCarData fromNode(Node carGroup) {
-		NodeList parts = carGroup.getChildNodes();
+	private static SvgData fromNode(Node group) {
+		NodeList parts = group.getChildNodes();
 		List<Part> pathDescriptions = new ArrayList<Part>(parts.getLength());
 		RectF bounds = null;
 		float originX = 0f, originY = 0f;
@@ -81,8 +92,8 @@ public class TrainCarData {
 				pathDescriptions.add(new Part(name.getTextContent(), path.getTextContent(), style.getTextContent()));
 			}
 		}
-		Node name = carGroup.getAttributes().getNamedItem("id");
-		return new TrainCarData(name.getTextContent(), originX, originY, bounds, pathDescriptions);
+		Node name = group.getAttributes().getNamedItem("id");
+		return new SvgData(name.getTextContent(), originX, originY, bounds, pathDescriptions);
 	}
 
 	private final String name;
@@ -91,7 +102,7 @@ public class TrainCarData {
 	private final float originX;
 	private final float originY;
 
-	private TrainCarData(String name, float originX, float originY, RectF bounds, List<Part> parts) {
+	private SvgData(String name, float originX, float originY, RectF bounds, List<Part> parts) {
 		this.name = name;
 		this.originX = originX;
 		this.originY = originY;
@@ -100,20 +111,42 @@ public class TrainCarData {
 		builder.addAll(parts);
 		this.parts = Collections.unmodifiableList(builder);
 	}
+	
+	public String getName() {
+		return name;
+	}
+	
+	public class SvgDrawable {
+		private final Bitmap bitmap;
+		private final float scale;
+		public SvgDrawable(float scale) {
+			this.scale = scale;
+			bitmap = Bitmap.createBitmap((int)(bounds.width() * scale), (int)(bounds.height() * scale), Config.ARGB_8888);
+			Canvas c = new Canvas(bitmap);
+			c.translate(-bounds.left * scale, -bounds.top * scale);
+			c.scale(scale, scale);
+			for (Part part : parts) {
+				part.draw(c);
+			}
+		}
+		public void draw(Canvas c) {
+			draw(c, null);
+		}
+		
+		public void draw(Canvas c, Paint paintOverride) {
+			c.drawBitmap(bitmap, (bounds.left - originX) * scale, (bounds.top - originY) * scale, paintOverride);
+		}
+	}
+	
+	public SvgDrawable getIconAtHeight(float height) {
+		return new SvgDrawable(height / bounds.height());
+	}
 
 	public TrackRider getCarAtHeight(float height) {
 		final float scale = height / bounds.height();
-		final Bitmap bitmap = Bitmap.createBitmap((int)(bounds.width() * scale), (int)(bounds.height() * scale), Config.ARGB_8888);
-		Canvas c = new Canvas(bitmap);
-		c.translate(-bounds.left * scale, -bounds.top * scale);
-		c.scale(scale, scale);
-		Paint paint = new Paint();
-		paint.setColor(Color.BLACK);
-		for (Part part : parts) {
-			part.draw(c);
-		}
+		final SvgDrawable drawable = new SvgDrawable(scale);
 		return new TrackRider() {
-			private float xScale = 1f;
+			private float xScale = 0f;
 			private float distanceTravelled;
 			@Override
 			public float getDistanceFront() {
@@ -135,7 +168,7 @@ public class TrainCarData {
 				float scaleGoal = tangent[0] < 0 ? -1 : 1;
 				xScale = xScale + (scaleGoal - xScale)/10f;
 				canvas.scale(1f, xScale);
-				canvas.drawBitmap(bitmap, (bounds.left - originX) * scale, (bounds.top - originY) * scale, null);
+				drawable.draw(canvas);
 			}
 
 			@Override
@@ -166,6 +199,7 @@ public class TrainCarData {
 	private static final Pattern STROKE = Pattern.compile("stroke:[#]?([^;]*)[;]?$?");
 	private static final Pattern FILL_OPACITY = Pattern.compile("fill-opacity:([^;]*)[;]?$?");
 	private static final Pattern STROKE_OPACITY = Pattern.compile("stroke-opacity:([^;]*)[;]?$?");
+	private static final Pattern STROKE_WIDTH = Pattern.compile("stroke-width:([^;]*)[;]?$?");
 	private static List<Paint> fromStyle(String style){
 		List<Paint> ret = new ArrayList<Paint>(2);
 		Paint fill = readColor(style, Style.FILL);
@@ -215,10 +249,19 @@ public class TrainCarData {
 			Integer color = (input != null && input.length() != 0 && !"none".equals(input))
 					? (int) Long.parseLong(getOpacityHex(opacityMatcher)+input, 16)
 					: null;
+			Matcher strokeWidth = STROKE_WIDTH.matcher(styleString);
+			Float lineWidth = null;
+			if(strokeWidth.find()) {
+				lineWidth = Float.parseFloat(strokeWidth.group(1));
+			}
+			
 			if (color != null) {
 				Paint paint = new Paint();
 				paint.setColor(color);
 				paint.setStyle(style);
+				if (lineWidth != null) {
+					paint.setStrokeWidth(lineWidth);
+				}
 				return paint;
 			}
 		}

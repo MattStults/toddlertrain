@@ -51,7 +51,7 @@ class Train implements Model {
 	private final float[] position = new float[2];
 	private final float[] tangent = new float[2];
 	
-	public Train(List<TrainCarData> cars) {
+	public Train(List<SvgData> cars) {
 		trackRiders = buildTrackRiders(100, cars);
 	}
 
@@ -86,7 +86,7 @@ class Train implements Model {
 
 	}
 
-	private List<TrackRider> buildTrackRiders(float height, List<TrainCarData> data) {
+	private List<TrackRider> buildTrackRiders(float height, List<SvgData> data) {
 		List<TrackRider> ret = new ArrayList<TrackRider>();
 		for (int i = data.size() -1; i >=0; i--) {
 			ret.add(data.get(i).getCarAtHeight(height));
