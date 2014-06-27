@@ -57,9 +57,9 @@ public class TrackData {
 
 	private TrackData(String pathDescription, float center, int cycles) {
 		pathMeasure = new PathMeasure();
-		path = getNormalizedPath(pathDescription, pathMeasure);
+		bounds = new RectF();
+		path = SVGParser.parsePath(pathDescription);
 		pathMeasure.setPath(path, true);
-		this.bounds = new RectF();
 		computeBoundsSlow(pathMeasure, bounds);
 		this.center = center;
 		this.cycles = cycles;
@@ -75,30 +75,13 @@ public class TrackData {
 
 	public void getPathAtSize(Path out, float width, float height, float buffer) {
 		Matrix scaleMatrix = new Matrix();
-		scaleMatrix.setTranslate(width / 2, height / 2);
+		scaleMatrix.setTranslate(width / 2 -bounds.centerX(), height / 2 - bounds.centerY());
 		out.set(this.path);
 		out.transform(scaleMatrix);
 		scaleMatrix.reset();
-		float scale = Math.min(width - buffer, height - buffer);
+		float scale = Math.min((width - buffer) / bounds.width(), (height - buffer) / bounds.height() );
 		scaleMatrix.setScale(scale, scale, width / 2, height / 2);
 		out.transform(scaleMatrix);
-	}
-
-	private static Path getNormalizedPath(String path, PathMeasure pathMeasure) {
-		Path track = SVGParser.parsePath(path);
-		Matrix scaleMatrix = new Matrix();
-		RectF trackBounds = new RectF();
-		pathMeasure.setPath(track, true);
-		computeBoundsSlow(pathMeasure, trackBounds);
-		scaleMatrix
-				.setTranslate(-trackBounds.centerX(), -trackBounds.centerY());
-		track.transform(scaleMatrix);
-		scaleMatrix.reset();
-		float scale = 1f / (Math.max(trackBounds.width(), trackBounds.height()));
-		scaleMatrix.setScale(scale, scale, 0, 0);
-		track.transform(scaleMatrix);
-		pathMeasure.setPath(track, true);
-		return track;
 	}
 
 	private static void computeBoundsSlow(PathMeasure measure, RectF bounds) {

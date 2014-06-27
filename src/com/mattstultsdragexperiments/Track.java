@@ -108,7 +108,7 @@ class Track {
 		trackPaths = new ArrayList<TrackModel>(paths.size());
 		for (TrackData trackData : paths) {
 			Path path = new Path();
-			trackData.getPathAtSize(path, width, height, 100);
+			trackData.getPathAtSize(path, width, height, 250);
 			trackPaths.add(new TrackModel(path, trackData.getCenter(),
 					trackData.getCycles()));
 		}

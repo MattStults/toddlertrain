@@ -52,7 +52,7 @@ class Train implements Model {
 	private final float[] tangent = new float[2];
 	
 	public Train(List<SvgData> cars) {
-		trackRiders = buildTrackRiders(100, cars);
+		trackRiders = buildTrackRiders(125, cars);
 	}
 
 	public void setNumberOfCars(int nCars) {
