@@ -31,30 +31,30 @@ class Track {
 		Paint red = new Paint();
 		red.setARGB(150, 125, 0, 0);
 		red.setStyle(Paint.Style.STROKE);
-		red.setStrokeWidth(40);
+		red.setStrokeWidth(50);
 		Paint yellow = new Paint();
 		yellow.setARGB(150, 150, 125, 0);
 		yellow.setStyle(Paint.Style.STROKE);
-		yellow.setStrokeWidth(40);
+		yellow.setStrokeWidth(50);
 		Paint green = new Paint();
 		green.setARGB(150, 0, 125, 0);
 		green.setStyle(Paint.Style.STROKE);
-		green.setStrokeWidth(40);
+		green.setStrokeWidth(50);
 		Paint black = new Paint();
-		black.setARGB(150, 0, 0, 0);
+		black.setARGB(0, 0, 0, 0);
 		black.setStyle(Paint.Style.STROKE);
-		black.setStrokeWidth(40);
+		black.setStrokeWidth(50);
 		trackPaint = new ArrayList<Paint>();
 		trackPaint.add(black);
 		trackPaint.add(green);
 		trackPaint.add(yellow);
 		trackPaint.add(red);
 		trackBars = new Paint();
-		trackBars.setARGB(255, 0, 0, 0);
+		trackBars.setARGB(225, 85, 34, 0);
 
 		arrowPaint = new Paint();
 		arrowPaint.setStyle(Paint.Style.STROKE);
-		arrowPaint.setStrokeWidth(40);
+		arrowPaint.setStrokeWidth(50);
 
 		debugPaint = new Paint();
 		debugPaint.setColor(Color.BLACK);
@@ -70,21 +70,21 @@ class Track {
 		trackBars.setPathEffect(new SumPathEffect(new PathDashPathEffect(
 				makeTrackBars(), 0.5f, distance - 1,
 				PathDashPathEffect.Style.ROTATE), new PathDashPathEffect(
-				makeTrackLines(), 20, distance - 1,
+				makeTrackLines(), 60, distance - 1,
 				PathDashPathEffect.Style.ROTATE)));
 		return trackBars;
 	}
 
 	private static Path makeTrackBars() {
 		Path ret = new Path();
-		ret.addRect(0, -20, 1, -15, Direction.CCW);
-		ret.addRect(0, 15, 1, 20, Direction.CCW);
+		ret.addRect(0, -25, 1, -15, Direction.CCW);
+		ret.addRect(0, 15, 1, 25, Direction.CCW);
 		return ret;
 	}
 
 	private static Path makeTrackLines() {
 		Path ret = new Path();
-		ret.addRect(0, -25, 10, 25, Direction.CCW);
+		ret.addRect(0, -35, 20, 35, Direction.CCW);
 		return ret;
 	}
 
@@ -147,7 +147,7 @@ class Track {
 			track = Bitmap.createBitmap(
 					(int) (2 * buffer + dimensions.right - dimensions.left),
 					(int) (2 * buffer + dimensions.bottom - dimensions.top),
-					Config.ALPHA_8);
+					Config.ARGB_8888);
 			Canvas c = new Canvas(track);
 			c.translate(-left, -top);
 			c.drawPath(this.path, buildTrackBarPaint(start));
@@ -371,7 +371,7 @@ class Track {
 				position = distanceAlongPath + offset - distanceToMovePerFrame;
 			}
 		}
-		return position;
+		return Math.max(position, 0);
 	}
 
 	public float registerDistance(float distanceTravelled) {

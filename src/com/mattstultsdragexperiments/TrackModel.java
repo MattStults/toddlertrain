@@ -205,7 +205,7 @@ class TrackModel {
 			List<TrackPiece> ret = new ArrayList<TrackPiece>(segments.length);
 			PathMeasure pathMeasure = this.pathMeasure.get();
 			for (Segment segment : segments) {
-				ret.add(new TrackPiece(pathMeasure, 25, segment.start,
+				ret.add(new TrackPiece(pathMeasure, 35, segment.start,
 						segment.stop, segment.depth));
 			}
 			return ret;
