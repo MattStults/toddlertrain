@@ -12,7 +12,6 @@ import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.os.AsyncTask;
 
-import com.mattstultsdragexperiments.PathIntersectionFinder.Segment;
 import com.mattstultsdragexperiments.Track.TrackPiece;
 
 class TrackModel {
@@ -20,7 +19,7 @@ class TrackModel {
 
 	private final float center;
 	private final int cycles;
-	private final PathMeasure pathMeasure;
+	private final Path path;
 	private final Matrix scratchMatrix = new Matrix();
 	private final float[] scratchPosition = new float[2];
 	private final float[] scratchTangent = new float[2];
@@ -28,20 +27,15 @@ class TrackModel {
 	private final List<List<TrackRider>> riders;
 	private final int depths;
 	private final float totalLength;
-	private final List<Segment> segments;
 	private final List<TrackPiece> tracksInOrder;
 	private AsyncLoaderTask loaderTask;
 
-	public TrackModel(Path path, float centerPercent, int cycles) {
-		this.pathMeasure = new PathMeasure();
-		this.pathMeasure.setPath(path, true);
-		;
-		totalLength = pathMeasure.getLength();
+	public TrackModel(Path path, float centerPercent, int cycles, int depths) {
+		this.path = path;
+		totalLength = computeLength(path);
 		this.center = centerPercent * totalLength;
 		this.cycles = cycles;
-		segments = PathIntersectionFinder.getIntersections(totalLength, center,
-				PIECE_SIZE);
-		this.depths = segments.size();
+		this.depths = depths;
 		tracks = new ArrayList<List<TrackPiece>>();
 		riders = new ArrayList<List<TrackRider>>();
 		for (int i = 0; i < depths; i++) {
@@ -49,6 +43,13 @@ class TrackModel {
 			riders.add(new ArrayList<TrackRider>());
 		}
 		tracksInOrder = new ArrayList<TrackPiece>(tracks.size());
+	}
+
+	private static float computeLength(Path contours) {
+		PathMeasure measure = new PathMeasure(contours, false);
+		float length = 0;
+		for( length = measure.getLength(); measure.nextContour(); length += measure.getLength());
+		return length;
 	}
 
 	public void initialize() {
@@ -70,8 +71,8 @@ class TrackModel {
 
 	public void preinitialize() {
 		if (loaderTask == null) {
-			loaderTask = new AsyncLoaderTask(pathMeasure);
-			loaderTask.execute(segments.toArray(new Segment[segments.size()]));
+			loaderTask = new AsyncLoaderTask();
+			loaderTask.execute(path);
 		}
 	}
 
@@ -85,11 +86,6 @@ class TrackModel {
 			tracks.get(i).clear();
 			riders.get(i).clear();
 		}
-	}
-
-	// TODO: Temporary until I can internalize the use of PathMeasure
-	public PathMeasure getPathMeasure() {
-		return pathMeasure;
 	}
 
 	public float getLength() {
@@ -167,6 +163,15 @@ class TrackModel {
 		}
 		return max;
 	}
+	
+	private TrackPiece getAtPosition(float distance) {
+		for (TrackPiece piece : tracksInOrder) {
+			if (piece.start <= distance && piece.stop >= distance) {
+				return piece;
+			}
+		}
+		throw new IllegalArgumentException("distance beyond length: " + distance);
+	}
 
 	private float getPathPosition(float raw) {
 		float position = raw % getLength();
@@ -180,35 +185,43 @@ class TrackModel {
 		canvas.save();
 		getMatrix(trackRider.getDistanceTravelled(), scratchMatrix);
 		canvas.concat(scratchMatrix);
-		pathMeasure.getPosTan(getPathPosition(trackRider.getDistanceTravelled()), scratchPosition, scratchTangent);
+		getPosTan(getPathPosition(trackRider.getDistanceTravelled()), scratchPosition, scratchTangent);
 		trackRider.draw(canvas, scratchTangent);
 		canvas.restore();
 	}
 
 	public void getMatrix(float distanceTravelled, Matrix matrix) {
-		float position = getPathPosition(distanceTravelled);
-		pathMeasure.getMatrix(position, matrix,
+		float realDistance = getPathPosition(distanceTravelled);
+		TrackPiece piece = getAtPosition(realDistance);
+		piece.pathMeasure.getMatrix(realDistance - piece.start, matrix,
 				PathMeasure.POSITION_MATRIX_FLAG
 						| PathMeasure.TANGENT_MATRIX_FLAG);
 	}
 
 	private static class AsyncLoaderTask extends
-			AsyncTask<Segment, Void, List<TrackPiece>> {
-		private final AtomicReference<PathMeasure> pathMeasure;
-
-		public AsyncLoaderTask(PathMeasure pathMeasure) {
-			this.pathMeasure = new AtomicReference<PathMeasure>(pathMeasure);
-		}
+			AsyncTask<Path, Void, List<TrackPiece>> {
 
 		@Override
-		protected List<TrackPiece> doInBackground(Segment... segments) {
-			List<TrackPiece> ret = new ArrayList<TrackPiece>(segments.length);
-			PathMeasure pathMeasure = this.pathMeasure.get();
-			for (Segment segment : segments) {
-				ret.add(new TrackPiece(pathMeasure, 35, segment.start,
-						segment.stop, segment.depth));
+		protected List<TrackPiece> doInBackground(Path... paths) {
+			List<TrackPiece> ret = new ArrayList<TrackPiece>();
+			float start = 0;
+			int depth = 0;
+			for (Path path : paths) {
+				PathMeasure pathMeasure = new PathMeasure(path, false);
+				do {
+					float length = pathMeasure.getLength();
+					ret.add(new TrackPiece(pathMeasure, 35, start,
+							start + length, depth++));
+					start += length;
+				} while (pathMeasure.nextContour());
 			}
 			return ret;
 		}
+	}
+
+	public void getPosTan(float distance, float[] position, float[] tangent) {
+		float realDistance = getPathPosition(distance);
+		TrackPiece piece = getAtPosition(realDistance);
+		piece.pathMeasure.getPosTan(distance - piece.start, position, tangent);
 	}
 }

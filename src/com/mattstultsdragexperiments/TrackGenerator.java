@@ -45,7 +45,7 @@ public class TrackGenerator {
 		StringBuilder builder = new StringBuilder();
 		builder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
 		builder.append("<svg "
-				+ "version=\"1.1\" width=\"" + width + "\" height=\"" + height + "\" d=\"paths\">");
+				+ "version=\"1.1\" width=\"" + width + "\" height=\"" + height + "\" id=\"paths\">");
 		for (String path : paths) {
 			builder.append(path);
 		}
@@ -55,9 +55,8 @@ public class TrackGenerator {
 	
 	private String buildPath(BluePrint bluePrint, int xStart, int yStart, float widthRatio, int segmentHeight, int verticalOffset) {
 		StringBuilder builder = new StringBuilder();
-		builder.append("<path d=\"M ");
+		builder.append("<g id=\"t").append(bluePrint.toString()).append("\" cycles=\"3\"").append(">\n");
 		int a = bluePrint.positions.get(0);
-		appendPoint(builder, xStart +0, yStart + a * segmentHeight).append("C ");
 		int multiplier = -1;
 		for (int i = 1; i < bluePrint.positions.size(); i++) {
 			int b = bluePrint.positions.get(i);
@@ -71,19 +70,18 @@ public class TrackGenerator {
 			a = b;
 			multiplier *= -1;
 		}
-		return builder.append("z\" ")
-				.append("center=\"0\" ")
-				.append("cycles=\"3\" ")
-				.append("id=\"t").append(bluePrint.toString()).append("\" ")
-				.append("style=\"fill:none;stroke:#000000;stroke-width:1\" ")
-				.append("/>\n").toString();
+		return builder.append("</g>\n").toString();
 	}
 	
 	private static StringBuilder buildPathSegment(StringBuilder builder, BluePrint bluePrint, int xStart, int yStart, int a, int b, int multiplier, float widthRatio, int segmentHeight, int yOffset1, int yOffset2) {
 		int width = (int) ((Math.abs(yOffset2 - yOffset1) + widthRatio * Math.abs(b - a) * segmentHeight) / 2f);
+		builder.append("  <path d=\"M ");
+		appendPoint(builder, xStart, yStart + yOffset1 + a * segmentHeight);
+		builder.append(" C ");
 		appendPoint(builder, xStart + multiplier * width, yStart + yOffset1 + a * segmentHeight);
 		appendPoint(builder, xStart + multiplier * width, yStart + yOffset2 + b * segmentHeight);
 		appendPoint(builder, xStart, yStart + yOffset2 + b * segmentHeight);
+		builder.append("\" style=\"fill:none;stroke:#000000;stroke-width:1\" ").append("/>\n");
 		return builder;
 	}
 	

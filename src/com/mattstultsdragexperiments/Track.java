@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.mattstultsdragexperiments.PathIntersectionFinder.Segment;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -110,7 +109,7 @@ class Track {
 			Path path = new Path();
 			trackData.getPathAtSize(path, width, height, 250);
 			trackPaths.add(new TrackModel(path, trackData.getCenter(),
-					trackData.getCycles()));
+					trackData.getCycles(), trackData.getContours()));
 		}
 		lastTrack = null;
 	}
@@ -124,9 +123,9 @@ class Track {
 		private final float left;
 		private final float top;
 		private final Path path;
-		private final float start;
+		final float start;
 		final float stop;
-		private final PathMeasure pathMeasure;
+		final PathMeasure pathMeasure;
 		final int depth;
 
 		public TrackPiece(PathMeasure path, float buffer, float start,
@@ -137,11 +136,11 @@ class Track {
 			this.colors = new ArrayList<Bitmap>();
 			this.highlights = new ArrayList<Bitmap>();
 			this.depth = depth;
-			path.getSegment(start, this.stop, this.path, true);
+			path.getSegment(0, path.getLength(), this.path, true);
 			this.path.rLineTo(0, 0);
 			pathMeasure = new PathMeasure(this.path, false);
-			RectF dimensions = getDimensions(path, (int) (this.stop - start),
-					start, this.stop);
+			RectF dimensions = getDimensions(path, (int) (path.getLength()),
+					0, path.getLength());
 			left = dimensions.left - buffer;
 			top = dimensions.top - buffer;
 			track = Bitmap.createBitmap(
@@ -310,8 +309,7 @@ class Track {
 
 	public void draw(Canvas canvas, float distanceTravelled,
 			List<TrackRider> trackRiders) {
-		PathMeasure fullPath = lastTrack.getPathMeasure();
-		float length = fullPath.getLength();
+		float length = lastTrack.getLength();
 		float distance = wrapFloat(distanceTravelled, length);
 		getCycle(distanceTravelled, length);
 		float arrowLength = 400;
@@ -337,9 +335,8 @@ class Track {
 	}
 
 	public void getPosition(float distanceAlongPath, float[] position, float[] tangent) {
-		PathMeasure pathMeasure = lastTrack.getPathMeasure();
-		float distance = wrapFloat(distanceAlongPath, pathMeasure.getLength());
-		lastTrack.getPathMeasure().getPosTan(distance, position, tangent);
+		float distance = wrapFloat(distanceAlongPath, lastTrack.getLength());
+		lastTrack.getPosTan(distance, position, tangent);
 	}
 	
 	private final float scratch[] = new float[2];
@@ -350,12 +347,11 @@ class Track {
 		if (lastTrack == null) {
 			return distanceAlongPath;
 		}
-		PathMeasure pathMeasure = lastTrack.getPathMeasure();
-		float distance = pathMeasure.getLength();
+		float distance = lastTrack.getLength();
 		float minDistanceSquared = minAcceptableDistance
 				* minAcceptableDistance;
 		float start = wrapFloat(
-				wrapFloat(distanceAlongPath, pathMeasure.getLength())
+				wrapFloat(distanceAlongPath, distance)
 						- distanceToMovePerFrame, distance);
 		float pos[] = new float[2];
 		float tangent[] = scratch;
@@ -363,7 +359,7 @@ class Track {
 		for (int i = 0; i < pathGranularity; i++) {
 			float offset = i * 2 * distanceToMovePerFrame / pathGranularity;
 			float location = wrapFloat(start + offset, distance);
-			pathMeasure.getPosTan(location, pos, tangent);
+			lastTrack.getPosTan(location, pos, tangent);
 			float localMinSquared = TrainGameModel.distSquare(proposedPoint,
 					pos);
 			if (localMinSquared <= minDistanceSquared) {

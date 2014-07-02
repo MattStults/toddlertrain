@@ -30,37 +30,43 @@ public class TrackData {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		doc = db.parse(trackFile);
-		NodeList nodes = doc.getElementsByTagName("path");
 		List<TrackData> paths = new ArrayList<TrackData>();
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Node node = nodes.item(i);
-			Node path = node.getAttributes().getNamedItem("d");
-			Node centerNode = node.getAttributes().getNamedItem("center");
-			float center = centerNode != null
-					? Float.parseFloat(centerNode.getTextContent())
-					: 0;
+		for (Node node = doc.getElementById("paths").getFirstChild(); node != null; node = node.getNextSibling()) {
+			if (!"g".equals(node.getNodeName())) {
+				continue;
+			}
 			Node cyclesNode = node.getAttributes().getNamedItem("cycles");
 			int cycles = cyclesNode != null
 					? Integer.parseInt(cyclesNode.getTextContent())
 					: 3;
+			NodeList trackChildren = node.getChildNodes();
+			List<String> pathStrings = new ArrayList<String>();
+			for (int j = 0; j < trackChildren.getLength(); j++) {
+				Node childNode = trackChildren.item(j);
+				if ("path".equals(childNode.getNodeName())) {
+					pathStrings.add(childNode.getAttributes().getNamedItem("d").getTextContent());
+				}
+			}
 			
-			paths.add(new TrackData(path.getTextContent(), center, cycles));
+			paths.add(new TrackData(pathStrings, 0, cycles));
 		}
 		return Collections.unmodifiableList(paths);
 	}
 
-	private final PathMeasure pathMeasure;
 	private final Path path;
 	private final float center;
 	private final int cycles;
 	private final RectF bounds;
+	private final int contours;
 
-	private TrackData(String pathDescription, float center, int cycles) {
-		pathMeasure = new PathMeasure();
+	private TrackData(List<String> pathDescription, float center, int cycles) {
 		bounds = new RectF();
-		path = SVGParser.parsePath(pathDescription);
-		pathMeasure.setPath(path, true);
-		computeBoundsSlow(pathMeasure, bounds);
+		path = new Path();
+		for (String description : pathDescription) {
+			path.addPath(SVGParser.parsePath(description));
+		}
+		contours = pathDescription.size();
+		computeBoundsSlow(path, bounds);
 		this.center = center;
 		this.cycles = cycles;
 	}
@@ -71,6 +77,10 @@ public class TrackData {
 
 	public int getCycles() {
 		return cycles;
+	}
+	
+	public int getContours() {
+		return contours;
 	}
 
 	public void getPathAtSize(Path out, float width, float height, float buffer) {
@@ -84,12 +94,15 @@ public class TrackData {
 		out.transform(scaleMatrix);
 	}
 
-	private static void computeBoundsSlow(PathMeasure measure, RectF bounds) {
+	private static void computeBoundsSlow(Path path, RectF bounds) {
+		PathMeasure measure = new PathMeasure();
+		measure.setPath(path, true);
 		float pos[] = new float[2];
 		float tan[] = new float[2];
 		measure.getPosTan(0, pos, tan);
 		bounds.left = bounds.right = pos[0];
 		bounds.top = bounds.bottom = pos[1];
+		do {
 		float length = measure.getLength();
 		int iteratons = 500;
 		for (int i = 0; i < iteratons; i++) {
@@ -99,5 +112,6 @@ public class TrackData {
 			bounds.top = Math.min(bounds.top, pos[1]);
 			bounds.bottom = Math.max(bounds.bottom, pos[1]);
 		}
+		} while (measure.nextContour());
 	}
 }
