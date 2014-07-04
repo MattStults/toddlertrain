@@ -32,25 +32,48 @@ public class TrackData {
 		doc = db.parse(trackFile);
 		List<TrackData> paths = new ArrayList<TrackData>();
 		for (Node node = doc.getElementById("paths").getFirstChild(); node != null; node = node.getNextSibling()) {
-			if (!"g".equals(node.getNodeName())) {
-				continue;
+			if (isGroup(node)) {
+				paths.add(readTrack(node));
 			}
-			Node cyclesNode = node.getAttributes().getNamedItem("cycles");
-			int cycles = cyclesNode != null
-					? Integer.parseInt(cyclesNode.getTextContent())
-					: 3;
-			NodeList trackChildren = node.getChildNodes();
-			List<String> pathStrings = new ArrayList<String>();
-			for (int j = 0; j < trackChildren.getLength(); j++) {
-				Node childNode = trackChildren.item(j);
-				if ("path".equals(childNode.getNodeName())) {
-					pathStrings.add(childNode.getAttributes().getNamedItem("d").getTextContent());
-				}
-			}
-			
-			paths.add(new TrackData(pathStrings, 0, cycles));
 		}
 		return Collections.unmodifiableList(paths);
+	}
+	
+	private static TrackData readTrack(Node node) {
+		if (!isGroup(node)) {
+			throw new IllegalArgumentException("group expected");
+		}
+		Node cyclesNode = node.getAttributes().getNamedItem("cycles");
+		int cycles = cyclesNode != null
+				? Integer.parseInt(cyclesNode.getTextContent())
+				: 3;
+		NodeList trackChildren = node.getChildNodes();
+		List<String> pathStrings = new ArrayList<String>();
+		for (int j = 0; j < trackChildren.getLength(); j++) {
+			Node childNode = trackChildren.item(j);
+			if (isGroup(childNode)) {
+				pathStrings.add(readPathLayer(childNode));
+			}
+		}
+		return new TrackData(pathStrings, 0, cycles);
+	}
+	
+	private static String readPathLayer(Node node) {
+		if (!isGroup(node)) {
+			throw new IllegalArgumentException("group expected");
+		}
+		NodeList trackChildren = node.getChildNodes();
+		for (int i = 0; i < trackChildren.getLength(); i++) {
+			Node child = trackChildren.item(i);
+			if ("path".equals(child.getNodeName())) {
+				return child.getAttributes().getNamedItem("d").getTextContent();
+			}
+		}
+		throw new IllegalStateException("no path found");
+	}
+	
+	private static boolean isGroup(Node node) {
+		return "g".equals(node.getNodeName());
 	}
 
 	private final Path path;

@@ -1,5 +1,4 @@
 package com.mattstultsdragexperiments;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,14 +74,36 @@ public class TrackGenerator {
 	
 	private static StringBuilder buildPathSegment(StringBuilder builder, BluePrint bluePrint, int xStart, int yStart, int a, int b, int multiplier, float widthRatio, int segmentHeight, int yOffset1, int yOffset2) {
 		int width = (int) ((Math.abs(yOffset2 - yOffset1) + widthRatio * Math.abs(b - a) * segmentHeight) / 2f);
-		builder.append("  <path d=\"M ");
-		appendPoint(builder, xStart, yStart + yOffset1 + a * segmentHeight);
+		int controlPointX = xStart + multiplier * width;
+		int y1 = yStart + yOffset1 + a * segmentHeight;
+		int y2 = yStart + yOffset2 + b * segmentHeight;
+		builder.append("  <g>\n    <path d=\"M ");
+		appendPoint(builder, xStart, y1);
 		builder.append(" C ");
-		appendPoint(builder, xStart + multiplier * width, yStart + yOffset1 + a * segmentHeight);
-		appendPoint(builder, xStart + multiplier * width, yStart + yOffset2 + b * segmentHeight);
-		appendPoint(builder, xStart, yStart + yOffset2 + b * segmentHeight);
-		builder.append("\" style=\"fill:none;stroke:#000000;stroke-width:1\" ").append("/>\n");
+		appendPoint(builder, controlPointX, y1);
+		appendPoint(builder, controlPointX, y2);
+		appendPoint(builder, xStart, y2);
+		builder.append("\" style=\"fill:none;stroke:#000000;stroke-width:1\" ").append("/>\n    ");
+		float midpointX = solveCubic(0.5f, xStart, controlPointX, controlPointX, xStart);
+		bounds(builder, Math.min(midpointX, xStart), Math.min(y1, y2), Math.max(midpointX, xStart), Math.max(y1,y2))
+		    .append("  </g>\n");
 		return builder;
+	}
+	
+	private static float solveCubic(float t, float p0, float p1, float p2, float p3) {
+		float iT = 1f - t;
+		return (float) (iT * iT * iT * p0
+				+ 3 * iT * iT * t * p1
+				+ 3 * iT * t * t * p2
+				+ t * t * t * p3);
+	}
+	
+	private static StringBuilder bounds(StringBuilder builder, float left, float top, float right, float bottom) {
+		return builder.append("<rect width=\"").append(right - left)
+				.append("\" height=\"").append(bottom - top)
+				.append("\" x=\"").append(left)
+				.append("\" y=\"").append(top)
+				.append("\" class=\"bounds\" style=\"fill:none;stroke:#ff0000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none\"/>\n");
 	}
 	
 	private static StringBuilder appendPoint(StringBuilder builder, int x, int y) {
