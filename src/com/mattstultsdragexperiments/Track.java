@@ -118,8 +118,6 @@ class Track {
 
 	static class TrackPiece {
 		private final Bitmap track;
-		private final List<Bitmap> colors;
-		private final List<Bitmap> highlights;
 		private final float left;
 		private final float top;
 		private final Path path;
@@ -133,8 +131,6 @@ class Track {
 			this.start = start;
 			this.stop = stop;
 			this.path = new Path();
-			this.colors = new ArrayList<Bitmap>();
-			this.highlights = new ArrayList<Bitmap>();
 			this.depth = depth;
 			path.getSegment(0, path.getLength(), this.path, true);
 			this.path.rLineTo(0, 0);
@@ -150,36 +146,6 @@ class Track {
 			Canvas c = new Canvas(track);
 			c.translate(-left, -top);
 			c.drawPath(this.path, buildTrackBarPaint(start));
-			for (Paint paint : trackPaint) {
-				colors.add(buildColorTrack(paint, buffer, dimensions));
-				highlights.add(buildHighlightTrack(paint, buffer, dimensions));
-			}
-		}
-
-		private Bitmap buildColorTrack(Paint paint, float buffer,
-				RectF dimensions) {
-			Bitmap coloredTrack = Bitmap.createBitmap((int) (2 * buffer
-					+ dimensions.right - dimensions.left), (int) (2 * buffer
-					+ dimensions.bottom - dimensions.top), Config.ARGB_8888);
-			Canvas c = new Canvas(coloredTrack);
-			c.translate(-left, -top);
-			c.drawPath(this.path, paint);
-			c.drawPath(this.path, buildTrackBarPaint(start));
-			return coloredTrack;
-		}
-
-		private Bitmap buildHighlightTrack(Paint paint, float buffer,
-				RectF dimensions) {
-			Bitmap highlightTrack = Bitmap.createBitmap((int) (2 * buffer
-					+ dimensions.right - dimensions.left), (int) (2 * buffer
-					+ dimensions.bottom - dimensions.top), Config.ARGB_8888);
-			Canvas c = new Canvas(highlightTrack);
-			c.translate(-left, -top);
-			arrowPaint.setColor(paint.getColor());
-			arrowPaint.setAlpha(255);
-			c.drawPath(this.path, buildTrackBarPaint(start));
-			c.drawPath(this.path, arrowPaint);
-			return highlightTrack;
 		}
 
 		public int getDepth() {
@@ -187,34 +153,25 @@ class Track {
 		}
 
 		public void draw(Canvas canvas, float changePoint,
-				float highlightLength, float totalLength, int colorIdx1,
-				int colorIdx2) {
-			float wrapped = wrapFloat(highlightLength + changePoint,
-					totalLength);
-			Paint color1 = trackPaint.get(colorIdx1);
-			Paint color2 = trackPaint.get(colorIdx2);
-			if (highlightLength + changePoint < start) { // backwards!?
-				draw(canvas, colorIdx1);
-			} else if (changePoint > stop) {
-				if (wrapped < start) {
-					draw(canvas, colorIdx2);
-				} else if (wrapped > stop) {
-					if (wrapped == (highlightLength + changePoint) /* UGH! */) {
-						draw(canvas, colorIdx2);
-					} else {
-						drawHighlight(canvas, color2);
-					}
-
+				float highlightLength, float totalLength, int colorIdx) {
+			float end = highlightLength + changePoint;
+			float wrappedStart = wrapFloat(changePoint, totalLength);
+			float wrappedEnd = wrapFloat(end, totalLength);
+			Paint color = trackPaint.get(colorIdx);
+			if ((changePoint <= start && (stop <= end || end >= totalLength)) // entirely in first round
+					|| (wrappedStart <= start && stop <= wrappedEnd)) {
+				drawHighlight(canvas, color);
+			} else if ((start <= changePoint && stop >= changePoint)
+					|| (start <= end && stop >= end)
+					|| (start <= wrappedStart && stop >= wrappedStart)
+					|| (start <= wrappedEnd && stop >= wrappedEnd)) {
+				if (changePoint < totalLength && end > totalLength && start < wrappedEnd) {
+					drawPartial(canvas, 0, wrappedEnd, color);
 				} else {
-					drawPartial(canvas, 0, wrapped, color2, color2);
+					drawPartial(canvas, changePoint, changePoint + highlightLength, color);
 				}
-			} else if (changePoint < start
-					&& changePoint + highlightLength > stop) {
-				drawHighlight(canvas, color2);
 			} else {
-
-				drawPartial(canvas, changePoint, changePoint + highlightLength,
-						color1, color2);
+				canvas.drawBitmap(track, left, top, null);
 			}
 		}
 
@@ -231,20 +188,15 @@ class Track {
 		}
 
 		private void drawPartial(Canvas canvas, float begin, float end,
-				Paint color1, Paint color2) {
-			drawColor(canvas, color1, end, stop);
-			drawColor(canvas, color2, start, begin);
-			drawHighlight(canvas, color2, begin, end);
-		}
-
-		public void draw(Canvas canvas, int colorIdx) {
-			canvas.drawBitmap(colors.get(colorIdx), left, top, null);
+				Paint color) {
+			drawHighlight(canvas, color, begin, end);
 		}
 
 		public void drawColor(Canvas canvas, Paint color, float start, float end) {
 			if (start >= end) {
 				return;
 			}
+			canvas.drawBitmap(track, left, top, null);
 			start = Math.max(this.start, start);
 			end = Math.min(this.stop, end);
 			scratchPath.rewind();
@@ -319,7 +271,7 @@ class Track {
 		arrowPaint.setColor(trackPaint.get(lastCycle + 1).getColor());
 		arrowPaint.setAlpha(255);
 		arrowHead.setFrontPosition(distanceTravelled + arrowLength - 1);
-		lastTrack.draw(canvas, distance, arrowLength + 1, lastCycle,
+		lastTrack.draw(canvas, distance, arrowLength + 1,
 				lastCycle + 1, this.trackRiders);
 	}
 

@@ -90,7 +90,10 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback {
 	@Override
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
-		// canvas.drawColor(Color.WHITE);
+		if (thread.get() == null) {
+			return;
+		}
+		thread.get().handleInputInCurrentThread();
 		long timeDelta = fpsMonitor.tick(System.currentTimeMillis());
 		model.draw(canvas, timeDelta);
 
@@ -175,14 +178,17 @@ public class DrawPanel extends SurfaceView implements SurfaceHolder.Callback {
 		public void postInput(MotionEvent input) {
 			inputQueue.add(input);
 		}
+		
+		public void handleInputInCurrentThread() {
+			while (!inputQueue.isEmpty()) {
+				gameModel.handleInput(inputQueue.remove());
+			}
+		}
 
 		@Override
 		public void run() {
 			while (isRunning.get()) {
 				long frameStartTime = System.currentTimeMillis();
-				while (!inputQueue.isEmpty()) {
-					gameModel.handleInput(inputQueue.remove());
-				}
 				if (surfaceHolder.getSurface().isValid()) {
 					Canvas canvas = surfaceHolder.lockCanvas();
 					if (canvas != null) {

@@ -1,10 +1,9 @@
 package com.mattstultsdragexperiments;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -15,9 +14,6 @@ import android.os.AsyncTask;
 import com.mattstultsdragexperiments.Track.TrackPiece;
 
 class TrackModel {
-	private static final float PIECE_SIZE = 500f;
-
-	private final float center;
 	private final int cycles;
 	private final Path path;
 	private final Matrix scratchMatrix = new Matrix();
@@ -33,7 +29,6 @@ class TrackModel {
 	public TrackModel(Path path, float centerPercent, int cycles, int depths) {
 		this.path = path;
 		totalLength = computeLength(path);
-		this.center = centerPercent * totalLength;
 		this.cycles = cycles;
 		this.depths = depths;
 		tracks = new ArrayList<List<TrackPiece>>();
@@ -42,7 +37,7 @@ class TrackModel {
 			tracks.add(new ArrayList<TrackPiece>());
 			riders.add(new ArrayList<TrackRider>());
 		}
-		tracksInOrder = new ArrayList<TrackPiece>(tracks.size());
+		tracksInOrder = new CopyOnWriteArrayList<TrackPiece>();
 	}
 
 	private static float computeLength(Path contours) {
@@ -106,7 +101,7 @@ class TrackModel {
 	}
 
 	public void draw(Canvas canvas, float transitionPoint,
-			float highlightLength, int color1, int color2,
+			float highlightLength, int color2,
 			Iterable<TrackRider> trainPieces) {
 		for (List<TrackRider> list : riders) {
 			list.clear();
@@ -123,7 +118,7 @@ class TrackModel {
 		for (int i = 0; i < depths; i++) {
 			for (TrackPiece trackPiece : tracks.get(i)) {
 				trackPiece.draw(canvas, transitionPoint, highlightLength,
-						totalLength, color1, color2);
+						totalLength, color2);
 			}
 			for (TrackRider trackRider : riders.get(i)) {
 				drawPiece(canvas, trackRider);
@@ -170,7 +165,7 @@ class TrackModel {
 				return piece;
 			}
 		}
-		throw new IllegalArgumentException("distance beyond length: " + distance);
+		throw new IllegalArgumentException("distance beyond length: " + distance + "; pieces: " + tracksInOrder.size());
 	}
 
 	private float getPathPosition(float raw) {
