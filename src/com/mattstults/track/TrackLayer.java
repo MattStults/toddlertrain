@@ -23,7 +23,7 @@ public class TrackLayer extends SvgContainer.Group{
 			this.contents.add(bounds);
 		}
 		public Builder append(Svgable content) {
-			contents.add(0, content);
+			contents.add(content);
 			return this;
 		}
 		

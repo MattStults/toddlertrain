@@ -40,7 +40,7 @@ public class Cubic implements PathPart {
 		}
 	}
 	
-	private static class CubicComponent {
+	public static class CubicComponent {
 		private final Context context;
 		private final Point control1, control2, destination;
 		public CubicComponent(Context context, Point control1, Point control2, Point destination) {
@@ -49,6 +49,41 @@ public class Cubic implements PathPart {
 			this.control2 = control2;
 			this.destination = destination;
 		}
+		
+		public static CubicComponent passingThrough(Context context, Point t0, Point t1, Point t2, Point t3) {
+			Point p1 = Point.of(
+					controlPoint1(t0.getX(), t1.getX(), t2.getX(), t3.getX()),
+					controlPoint1(t0.getY(), t1.getY(), t2.getY(), t3.getY()));
+			Point p2 = Point.of(
+					controlPoint2(t0.getX(), p1.getX(), t2.getX(), t3.getX()),
+					controlPoint2(t0.getY(), p1.getY(), t2.getY(), t3.getY()));
+			return new CubicComponent(context, p1, p2, t3);
+		}
+		
+		private static float controlPoint1(float p0, float t1, float t2, float p3) {
+			return 3 * (t1 - t2/2) - (8*p0+p3)/9 + (p0 + 8*p3)/18;
+		}
+		
+		private static float controlPoint2(float p0, float p1, float t2, float p3) {
+			return (9f/4f) * (t2 - (p0 + 8 * p3)/27 - (2 * p1/9)); 
+		}
+		
+		protected Context getContext() {
+			return context;
+		}
+		
+		public Point getControl1() {
+			return control1;
+		}
+		
+		public Point getControl2() {
+			return control2;
+		}
+		
+		public Point getDestination() {
+			return destination;
+		}
+		
 		@Override
 		public String toString() {
 			StringBuilder ret = new StringBuilder(context == Context.ABSOLUTE
@@ -76,12 +111,32 @@ public class Cubic implements PathPart {
 				solveCubic(percent, start.getY(), c1.getY(), c2.getY(), dest.getY()));
 		}
 		
+		public Vector getTangentAtPercentAlong(float percent, Point start) {
+			Point c1 = getAbsoluteCoordinate(start, control1);
+			Point c2 = getAbsoluteCoordinate(start, control2);
+			Point dest = getAbsoluteCoordinate(start, destination);
+			return new Vector(
+				solveDerivative(percent, start.getX(), c1.getX(), c2.getX(), dest.getX()),
+				solveDerivative(percent, start.getY(), c1.getY(), c2.getY(), dest.getY()));
+		}
+		
+		public Point getOffsetPoint(float offset, float percentAlong, Point start) {
+			return getPointAtPercentAlong(percentAlong, start).plus(getTangentAtPercentAlong(percentAlong, start).perpendicular().resizeToLength(offset));
+		}
+		
 		private static float solveCubic(float t, float p0, float p1, float p2, float p3) {
 			float iT = 1f - t;
-			return (float) (iT * iT * iT * p0
+			return iT * iT * iT * p0
 					+ 3 * iT * iT * t * p1
 					+ 3 * iT * t * t * p2
-					+ t * t * t * p3);
+					+ t * t * t * p3;
+		}
+		
+		private static float solveDerivative(float t, float p0, float p1, float p2, float p3) {
+			float iT = 1f - t;
+			return iT * iT * iT * 3 * (p1 - p0)
+					+ iT * t * 6 * (p2 - p1)
+					+ t * t * 3 * (p3 - p2);
 		}
 	}
 }

@@ -24,8 +24,12 @@ public class Point {
 		return new Point(x + right.x, y + right.y);
 	}
 	
-	public Point minus(Point right) {
-		return new Point(x - right.x, y - right.y);
+	public Vector minus(Point right) {
+		return new Vector(x - right.x, y - right.y);
+	}
+	
+	public Point times(float scalar) {
+		return new Point(x * scalar, y * scalar);
 	}
 	
 	public float distanceSquared(Point other) {
@@ -36,5 +40,15 @@ public class Point {
 	@Override
 	public String toString() {
 		return new StringBuilder().append(x).append(",").append(y).toString();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (!(o instanceof Point)) {
+			return false;
+		}
+		Point other = (Point) o;
+		float distanceSquared = distanceSquared(other);
+		return distanceSquared < 0.01f;
 	}
 }

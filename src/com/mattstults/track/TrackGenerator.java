@@ -79,7 +79,8 @@ public class TrackGenerator {
 		int y1 = yStart + yOffset1 + a * segmentHeight;
 		int y2 = yStart + yOffset2 + b * segmentHeight;
 		List<PathPart> parts = new ArrayList<PathPart>();
-		parts.add(new Move(Context.ABSOLUTE, Point.of(xStart, y1)));
+		Point start = Point.of(xStart, y1);
+		parts.add(new Move(Context.ABSOLUTE, start));
 		parts.add(new Cubic.Builder(
 				Context.ABSOLUTE,
 				Point.of(controlPointX, y1),
@@ -91,8 +92,40 @@ public class TrackGenerator {
 		TrackLayer.Builder layerBuilder = new TrackLayer.Builder(bounds.build());
 		SvgContainer.Path path = new SvgContainer.Path(
 				parts,
-				new Metadata("trackPath", null, null, 0, 1f, 1f));
+				new Metadata("trackPath", null, null, 0x000033, 0.3f, 1f));
 		layerBuilder.append(path);
+		
+		float offset = 0.5f;
+		Cubic.CubicComponent center = new Cubic.CubicComponent(Context.ABSOLUTE, Point.of(controlPointX, y1), Point.of(controlPointX, y2), Point.of(xStart, y2));
+		Point backStart = center.getOffsetPoint(-offset, 0, start);
+		Cubic.CubicComponent back = Cubic.CubicComponent.passingThrough(Context.ABSOLUTE,
+				backStart,
+				center.getOffsetPoint(-offset, 1/3f, start),
+				center.getOffsetPoint(-offset, 2/3f, start),
+				center.getOffsetPoint(-offset, 3/3f, start));
+		
+		Point frontStart = center.getOffsetPoint(offset, 0, start);
+		Cubic.CubicComponent front = Cubic.CubicComponent.passingThrough(Context.ABSOLUTE,
+				frontStart,
+				center.getOffsetPoint(offset, 1/3f, start),
+				center.getOffsetPoint(offset, 2/3f, start),
+				center.getOffsetPoint(offset, 3/3f, start));
+		parts = new ArrayList<PathPart>();
+		float minWidth = 0.2f;
+		float maxWidth = 0.6f;
+		parts.add(TaperedCubic.taperedCubic(
+				backStart,
+				back,
+				multiplier < 0f ? minWidth : maxWidth,
+				multiplier < 0f ? maxWidth : minWidth));
+		parts.add(TaperedCubic.taperedCubic(
+				frontStart,
+				front,
+				multiplier < 0f ? maxWidth : minWidth,
+				multiplier < 0f ? minWidth : maxWidth));
+		layerBuilder.append(new SvgContainer.Path(
+				parts,
+				new Metadata("rails", 0xaaaaaa, 1f, null, null, null)));
 		return layerBuilder.build();
 	}
 	
@@ -102,18 +135,6 @@ public class TrackGenerator {
 				+ 3 * iT * iT * t * p1
 				+ 3 * iT * t * t * p2
 				+ t * t * t * p3);
-	}
-	
-	private static StringBuilder bounds(StringBuilder builder, float left, float top, float right, float bottom) {
-		return builder.append("<rect width=\"").append(right - left)
-				.append("\" height=\"").append(bottom - top)
-				.append("\" x=\"").append(left)
-				.append("\" y=\"").append(top)
-				.append("\" class=\"bounds\" style=\"fill:none;stroke:#ff0000;stroke-width:0.1;stroke-miterlimit:4;stroke-dasharray:none\"/>\n");
-	}
-	
-	private static StringBuilder appendPoint(StringBuilder builder, int x, int y) {
-		return builder.append(x).append(",").append(y).append(" ");
 	}
 	
 	private Set<BluePrint> buildBluePrints(int i, List<Integer> input) {
